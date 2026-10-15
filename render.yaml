@@ -1,0 +1,21 @@
+# Penerapan prototipe ke Render. Jalankan dari akun penulis sendiri.
+services:
+  - type: web
+    name: uji-jelajah
+    runtime: node
+    plan: starter
+    buildCommand: "true"
+    startCommand: node server/seed.js --if-empty && node server/server.js
+    envVars:
+      - key: NODE_VERSION
+        value: "22.13.0"
+      - key: DB_PATH
+        value: /var/data/uji-jelajah.db
+      - key: TRUST_PROXY
+        value: "1"
+      - key: DEMO_MODE
+        value: "1"
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1

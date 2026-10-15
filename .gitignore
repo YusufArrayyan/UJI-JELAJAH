@@ -1,0 +1,14 @@
+# Dependensi dan data lokal
+node_modules/
+data/
+*.db
+*.db-wal
+*.db-shm
+*.log
+
+# Konfigurasi alat lokal
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,18 @@
+{
+  "name": "uji-jelajah",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistem berbantuan AI untuk menumbuhkan adaptabilitas karier mahasiswa lewat tiga siklus Dugaan, Uji, dan Tinjau. Prototipe dengan data simulasi.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "seed": "node server/seed.js",
+    "test": "node --test test/unit.test.js",
+    "e2e": "node --test test/e2e.test.js test/ui.test.js",
+    "e2e:api": "node --test test/e2e.test.js",
+    "e2e:ui": "node --test test/ui.test.js"
+  }
+}
