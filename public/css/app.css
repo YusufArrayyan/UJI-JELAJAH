@@ -557,3 +557,13 @@ h1, .hero h1, .auth-side h1 { font-weight: 560; letter-spacing: -0.02em; }
 .grid-2 > .stat { background: var(--card); border-radius: var(--r-lg); padding: 20px 22px; }
 .grid-2 > .stat .label { color: var(--ink-2); }
 .grid-2 > .stat p { color: var(--ink); }
+
+/* Router memindahkan fokus ke judul halaman untuk pembaca layar; judul bukan elemen interaktif, jadi tanpa cincin fokus. */
+h1[tabindex='-1']:focus, h1[tabindex='-1']:focus-visible { outline: none; box-shadow: none; }
+
+/* Menu bawah dengan lima tab (koordinator): label lebih rapat supaya tidak meluber dari pil aktif. */
+@media (max-width: 767px) {
+  .bottomnav a { min-width: 0; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bottomnav:has(> a:nth-child(5)) { gap: 2px; padding: 5px; }
+  .bottomnav:has(> a:nth-child(5)) a { font-size: 12.5px; padding: 0 4px; }
+}

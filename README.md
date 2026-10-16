@@ -13,6 +13,7 @@ npm start      # http://localhost:3000
 npm test       # 13 uji unit
 npm run e2e    # ujung ke ujung: API (9 skenario) + antarmuka Chromium (22 pemeriksaan)
 npm run demo:video   # rekam ulang video panduan ke public/media (butuh Playwright)
+npm run mockup       # buat ulang mockup ponsel untuk esai ke docs/mockup (butuh Playwright)
 ```
 
 Hentikan server dulu sebelum `npm run seed` (di Windows berkas basis data terkunci selama server berjalan).
@@ -79,7 +80,8 @@ docs/DESIGN.md          Sistem desain v1.1 "Kompas"
 docs/DESIGN.notion.md   Arsip acuan desain v1.0 (PRD 13.2)
 docs/KETERTELUSURAN.md  Pemetaan PRD ke kode dan uji (hasil uji akhir)
 docs/INOVASI.md         Daftar inovasi teknologi dan buktinya
-scripts/          pw.mjs (pemuat Playwright), record-demo.mjs (perekam video panduan)
+scripts/          pw.mjs (pemuat Playwright), record-demo.mjs (video panduan), mockup.mjs (mockup ponsel)
+docs/mockup/      Mockup ponsel 4 layar untuk esai (papan gabungan dan per layar, latar transparan)
 test/             unit.test.js, e2e.test.js (API), ui.test.js (Playwright)
 CHANGELOG.md      Catatan versi (aturan PRD 4.3)
 ```

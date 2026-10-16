@@ -3,6 +3,12 @@
 Mengikuti aturan perubahan PRD bagian 4.3: setelah v1.0 hanya perbaikan galat, teks, dan penyetelan angka,
 masing-masing dicatat sebagai versi 1.x beserta alasannya.
 
+## 1.1.1 (16 Oktober 2026, mockup dan perbaikan tampilan)
+
+- Mockup ponsel 4 layar untuk esai (docs/mockup, dibuat oleh npm run mockup dari layar asli).
+- Perbaikan: cincin fokus biru muncul di sekeliling judul setiap kali halaman dimuat.
+- Perbaikan: label tab aktif meluber di menu bawah ponsel koordinator (lima tab).
+
 ## 1.1.0 (16 Oktober 2026, tampilan dan fitur pendukung)
 
 Tidak ada peran, tahap, tabel inti, saluran notifikasi, atau aturan bisnis baru (sesuai PRD 4.3).
