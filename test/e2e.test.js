@@ -325,3 +325,42 @@ test('uji adversarial: URL rusak, penelusuran folder, IDOR, cookie palsu, tautan
   fails(await new Client('10.0.2.4').get(`/api/confirm/${other.token}`), 410, /kedaluwarsa/);
   db.close();
 });
+
+test('kalender .ics, aplikasi web terpasang (PWA), dan media panduan', async () => {
+  const fikri = await new Client('10.0.3.1').login('fikri@demo.id');
+  const st = (await fikri.get('/api/my/state')).json;
+  const withSession = st.cycles.find((c) => c.session);
+  const ics = await fikri.get(`/api/cycles/${withSession.id}/session.ics`);
+  ok(ics);
+  assert.match(ics.headers.get('content-type'), /text\/calendar/);
+  assert.match(ics.text, /BEGIN:VCALENDAR[\s\S]*BEGIN:VEVENT[\s\S]*END:VCALENDAR/);
+  assert.match(ics.text, /DTSTART:\d{8}T\d{6}Z/);
+  assert.match(ics.text, new RegExp(`siklus ${withSession.n}`));
+  assert.doesNotMatch(ics.text, /@demo\.id/);
+  const locked = st.cycles.find((c) => !c.session);
+  if (locked) fails(await fikri.get(`/api/cycles/${locked.id}/session.ics`), 404);
+
+  const nadia = await new Client('10.0.3.2').login('fasilitator@demo.id');
+  const detail = (await nadia.get(`/api/fac/participants/${(await nadia.get('/api/fac/participants')).json.participants.find((p) => p.name === 'Fikri Ramadhan').id}`)).json;
+  const sid = detail.cycles.find((c) => c.session).session.id;
+  const facIcs = await nadia.get(`/api/sessions/${sid}/session.ics`);
+  ok(facIcs);
+  assert.match(facIcs.text, /bersama peserta P-\d{3}/);
+  assert.doesNotMatch(facIcs.text, /Fikri/);
+  fails(await (await new Client('10.0.3.3').login('fasilitator2@demo.id')).get(`/api/sessions/${sid}/session.ics`), 403);
+
+  const manifest = await fetch(base + '/manifest.webmanifest');
+  assert.equal(manifest.status, 200);
+  assert.match(manifest.headers.get('content-type'), /manifest\+json/);
+  assert.equal((await manifest.json()).display, 'standalone');
+  const sw = await fetch(base + '/sw.js');
+  assert.equal(sw.status, 200);
+  assert.match(await sw.text(), /\/api\//, 'service worker mengecualikan /api dari cache');
+
+  const media = await fetch(base + '/media/demo-peserta.webm', { headers: { range: 'bytes=0-99' } });
+  if (media.status !== 404) {
+    assert.equal(media.status, 206);
+    assert.match(media.headers.get('content-range'), /^bytes 0-99\/\d+$/);
+    assert.equal((await media.arrayBuffer()).byteLength, 100);
+  }
+});

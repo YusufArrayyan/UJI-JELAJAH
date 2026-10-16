@@ -19,10 +19,9 @@ Teman atau kakak tingkat yang tenang. Sapaan "kamu". Jelas lebih penting daripad
 penting daripada lucu. Pesan galat: apa yang terjadi, lalu cara memperbaiki.
 
 ## Arah visual
-Sistem desain Notion (lihat `docs/DESIGN.notion.md`): kanvas putih, ungu primer #5645D4, kartu pastel
-penanda tahap (biru Dugaan, oranye Uji, hijau Tinjau, abu Selesai), huruf sistem, tombol persegi 8 px.
-Logo: kompas biru-ungu dengan figur, jalur berliku, panah dan bintang kuning. Kuning bintang dipakai hemat
-sebagai aksen "langkah berikutnya", bukan warna permukaan.
+"Kompas" (v1.1, lihat docs/DESIGN.md): navy dan kuning bintang dari logo, kanvas bertint dengan kartu putih,
+judul dan angka serif Newsreader, teks IBM Plex Sans. Data nyata sebagai visual (cincin waktu, rute bernomor). Tanpa gradien,
+orb, pastel, ikon kilau, atau bullet centang. Menggantikan acuan Notion di PRD 13.2.
 
 ## Batasan
 Tanpa dependensi pihak ketiga di peramban maupun server. Tanpa innerHTML untuk isi pengguna.

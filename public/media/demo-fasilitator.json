@@ -1,0 +1,25 @@
+{
+  "role": "fasilitator",
+  "duration": 32,
+  "width": 1280,
+  "height": 720,
+  "chapters": [
+    {
+      "t": 1,
+      "label": "Kelompokku"
+    },
+    {
+      "t": 10,
+      "label": "Detail peserta"
+    },
+    {
+      "t": 17,
+      "label": "Menutup sesi"
+    },
+    {
+      "t": 26,
+      "label": "Kendala"
+    }
+  ],
+  "recorded_at": "2026-10-16T00:13:10.323Z"
+}

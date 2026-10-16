@@ -1,0 +1,45 @@
+{
+  "role": "peserta",
+  "duration": 91,
+  "width": 1280,
+  "height": 720,
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Masuk"
+    },
+    {
+      "t": 6,
+      "label": "Persetujuan data"
+    },
+    {
+      "t": 15,
+      "label": "Pretes"
+    },
+    {
+      "t": 21,
+      "label": "Rute tiga siklus"
+    },
+    {
+      "t": 26,
+      "label": "Dugaan bersama Pendamping AI"
+    },
+    {
+      "t": 46,
+      "label": "Uji: percobaan dan waktu"
+    },
+    {
+      "t": 60,
+      "label": "Tinjau: refleksi dan sesi"
+    },
+    {
+      "t": 78,
+      "label": "Keputusan"
+    },
+    {
+      "t": 86,
+      "label": "Peta jelajah"
+    }
+  ],
+  "recorded_at": "2026-10-16T00:11:12.823Z"
+}

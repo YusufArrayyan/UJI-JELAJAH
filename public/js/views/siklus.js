@@ -1,7 +1,7 @@
 // Tiga tahap siklus: Dugaan, Uji, Tinjau.
-import { h, icon, busy, clear } from '../dom.js';
+import { h, busy, clear } from '../dom.js';
 import { get, post } from '../api.js';
-import { field, choices, selectField, stageTag, notice, formMessage, toast, kv, quote, meter, emptyState } from '../ui.js';
+import { field, choices, selectField, stageTag, notice, formMessage, toast, kv, quote, meter, emptyState, calendarButton } from '../ui.js';
 import { dateShort, dateLong, time, slotLabel, minutes, VERDICT, DECISION, STAGE } from '../format.js';
 
 async function loadCycle(id) {
@@ -11,7 +11,7 @@ async function loadCycle(id) {
 }
 
 function head(c, stage, title, lede) {
-  return h('header', { class: 'page-head' }, h('a', { class: 'back-link', href: '#/beranda' }, icon('arrowLeft'), 'Beranda'), h('div', stageTag(stage, `Siklus ${c.n} · ${STAGE[stage]}`)), h('h1', title), lede && h('p', { class: 'lede' }, lede));
+  return h('header', { class: 'page-head' }, h('a', { class: 'back-link', href: '#/beranda' }, 'Beranda'), h('div', stageTag(stage, `Siklus ${c.n} · ${STAGE[stage]}`)), h('h1', title), lede && h('p', { class: 'lede' }, lede));
 }
 
 function notHere(c, s) {
@@ -74,7 +74,7 @@ export async function dugaan({ params, go, reload }) {
       });
       below.append(form);
     } else if (!draftBox.hasChildNodes()) {
-      const mk = h('button', { class: 'btn', type: 'button' }, icon('sparkle'), 'Susun draf dugaan');
+      const mk = h('button', { class: 'btn', type: 'button' }, 'Susun draf dugaan');
       const msg = formMessage();
       mk.addEventListener('click', busy(mk, async () => {
         try {
@@ -129,7 +129,7 @@ export async function dugaan({ params, go, reload }) {
       h(
         'section',
         { class: 'card stack', 'aria-labelledby': 'draft-h' },
-        h('div', { class: 'row between' }, h('h2', { id: 'draft-h' }, 'Draf dugaanmu'), h('span', { class: 'tag ai' }, icon('sparkle'), 'Draf dari Pendamping AI')),
+        h('div', { class: 'row between' }, h('h2', { id: 'draft-h' }, 'Draf dugaanmu'), h('span', { class: 'tag ai' }, 'Draf dari Pendamping AI')),
         fallback
           ? notice('warn', 'Pendamping AI tidak bisa menyusun draf kali ini, jadi kami memakai templat. Ganti bagian dalam kurung siku dengan kata-katamu.')
           : h('p', { class: 'hint' }, 'Kamu bebas mengubahnya. Dugaan yang baik bisa diuji dalam paling lama 6 jam. Fasilitatormu melihat versi AI dan versimu.'),
@@ -233,7 +233,7 @@ export async function uji({ params, go, reload }) {
   // --- Penghitung waktu ---
   const clock = h('p', { class: `clock${running ? ' running' : ''}`, 'aria-live': 'off' }, '00:00:00');
   const tmsg = formMessage();
-  const toggle = h('button', { class: running ? 'btn danger' : 'btn', type: 'button', disabled: !running && left <= 0 }, icon(running ? 'stop' : 'play'), running ? 'Berhenti' : 'Mulai');
+  const toggle = h('button', { class: running ? 'btn danger' : 'btn', type: 'button', disabled: !running && left <= 0 }, running ? 'Berhenti' : 'Mulai');
   toggle.addEventListener('click', busy(toggle, async () => {
     try {
       const out = await post(`/api/experiments/${x.id}/${running ? 'stop' : 'start'}`);
@@ -286,7 +286,7 @@ export async function uji({ params, go, reload }) {
   const link = `${location.origin}/#/konfirmasi/${x.confirm_token}`;
   const linkInput = h('input', { class: 'input mono', readonly: true, value: link, 'aria-label': 'Tautan konfirmasi mitra', style: { fontSize: '14px' } });
   linkInput.addEventListener('focus', () => linkInput.select());
-  const copy = h('button', { class: 'btn secondary small', type: 'button' }, icon('copy'), 'Salin tautan');
+  const copy = h('button', { class: 'btn secondary small', type: 'button' }, 'Salin tautan');
   copy.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(link);
@@ -303,7 +303,7 @@ export async function uji({ params, go, reload }) {
     h('h2', { id: 'cf-h' }, 'Konfirmasi mitra (opsional)'),
     h('p', { class: 'muted' }, `Kirim tautan ini ke mitramu. Mitra cukup membukanya dan menekan satu tombol, tanpa akun. Berlaku sampai ${dateShort(x.token_expires_at)}.`),
     linkInput,
-    h('div', { class: 'row' }, copy, x.confirmed_at ? h('span', { class: 'tag ok' }, icon('check'), `Dikonfirmasi ${dateShort(x.confirmed_at)}`) : h('span', { class: 'tag plain' }, 'Menunggu konfirmasi')),
+    h('div', { class: 'row' }, copy, x.confirmed_at ? h('span', { class: 'tag ok' }, `Dikonfirmasi ${dateShort(x.confirmed_at)}`) : h('span', { class: 'tag plain' }, 'Menunggu konfirmasi')),
   );
 
   // --- Selesaikan ---
@@ -360,7 +360,7 @@ export async function tinjau({ params, go, reload }) {
     x &&
       kv(
         'Percobaanku',
-        h('p', { class: 'row', style: { gap: '8px' } }, `${x.title} · ${minutes(x.logged_minutes)}`, x.confirmed_at ? h('span', { class: 'tag ok' }, icon('check'), 'Dikonfirmasi mitra') : null),
+        h('p', { class: 'row', style: { gap: '8px' } }, `${x.title} · ${minutes(x.logged_minutes)}`, x.confirmed_at ? h('span', { class: 'tag ok' }, 'Dikonfirmasi mitra') : null),
       ),
   );
 
@@ -417,7 +417,7 @@ export async function tinjau({ params, go, reload }) {
   const summaryCard = h(
     'section',
     { class: 'card stack', 'aria-labelledby': 'sm-h' },
-    h('div', { class: 'row between' }, h('h2', { id: 'sm-h' }, 'Ringkasan refleksimu'), h('span', { class: 'tag ai' }, icon('sparkle'), 'Ringkasan dari Pendamping AI')),
+    h('div', { class: 'row between' }, h('h2', { id: 'sm-h' }, 'Ringkasan refleksimu'), h('span', { class: 'tag ai' }, 'Ringkasan dari Pendamping AI')),
     kv('Yang terjadi', h('p', r.what_happened)),
     r.surprise ? kv('Yang mengejutkan', h('p', r.surprise)) : null,
     kv('Penilaianmu', h('p', VERDICT[r.verdict])),
@@ -442,7 +442,7 @@ export async function tinjau({ params, go, reload }) {
       return h('div', { class: 'stack-lg' }, parts);
     }
     const msg = formMessage();
-    const book = h('button', { class: 'btn', type: 'submit', disabled: !slotData.slots.length }, icon('calendar'), 'Jadwalkan sesi');
+    const book = h('button', { class: 'btn', type: 'submit', disabled: !slotData.slots.length }, 'Jadwalkan sesi');
     const grid = h('div', { class: 'slots' });
     let lastDay = '';
     for (const sl of slotData.slots) {
@@ -483,7 +483,8 @@ export async function tinjau({ params, go, reload }) {
         'section',
         { class: 'card stack', 'aria-labelledby': 'ses-h' },
         h('div', { class: 'row between' }, h('h2', { id: 'ses-h' }, 'Sesi Tinjau terjadwal'), h('span', { class: 'tag tinjau' }, 'Terjadwal')),
-        h('p', { class: 'row', style: { gap: '8px', color: 'var(--ink)', fontWeight: 600 } }, icon('calendar'), `${slotLabel(ses.slot_at)} · dengan ${ses.facilitator_name}`),
+        h('div', calendarButton(`/api/cycles/${c.id}/session.ics`)),
+        h('p', { class: 'row', style: { gap: '8px', color: 'var(--ink)', fontWeight: 600 } }, `${slotLabel(ses.slot_at)} · dengan ${ses.facilitator_name}`),
         h(
           'ul',
           { class: 'stack', style: { gap: '6px', paddingLeft: '20px', margin: 0 } },
@@ -529,7 +530,7 @@ export async function tinjau({ params, go, reload }) {
         'section',
         { class: 'card stack', 'aria-labelledby': 'dc-h' },
         h('h2', { id: 'dc-h' }, 'Keputusanmu'),
-        h('p', { class: 'row', style: { gap: '8px' } }, h('span', { class: 'tag ok' }, icon('check'), DECISION[r.decision])),
+        h('p', { class: 'row', style: { gap: '8px' } }, h('span', { class: 'tag ok' }, DECISION[r.decision])),
         r.decision_note ? quote(r.decision_note) : null,
         h('p', { class: 'hint' }, `Sesi Tinjau bersama ${ses.facilitator_name}, ${dateShort(ses.slot_at)}.`),
         h('div', h('a', { class: 'btn secondary', href: '#/beranda' }, 'Ke Beranda')),

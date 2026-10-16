@@ -1,6 +1,7 @@
 // Satu proses Node: berkas statis + API JSON. Tanpa dependensi npm.
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openDb } from './db.js';
@@ -12,7 +13,7 @@ const ROOT = resolve(fileURLToPath(new URL('../public', import.meta.url)));
 const MAX_BODY = 100 * 1024;
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
-  '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.webmanifest': 'application/manifest+json',
+  '.png': 'image/png', '.woff2': 'font/woff2', '.webm': 'video/webm', '.vtt': 'text/vtt; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.webmanifest': 'application/manifest+json',
 };
 const SECURITY_HEADERS = {
   'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
@@ -121,10 +122,27 @@ async function handleStatic(req, res, url) {
   try {
     const st = await stat(file);
     if (!st.isFile()) throw new Error('bukan berkas');
+    // Video demo: dukung permintaan Range supaya bisa dimajukan atau dimundurkan.
+    if (extname(file) === '.webm') {
+      const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+      const base = { 'Content-Type': 'video/webm', 'Accept-Ranges': 'bytes', 'Cache-Control': 'public, max-age=86400' };
+      if (!m) {
+        res.writeHead(200, { ...SECURITY_HEADERS, ...base, 'Content-Length': st.size });
+        return req.method === 'HEAD' ? res.end() : createReadStream(file).pipe(res);
+      }
+      let start = m[1] === '' ? Math.max(0, st.size - Number(m[2])) : Number(m[1]);
+      let end = m[1] !== '' && m[2] !== '' ? Math.min(Number(m[2]), st.size - 1) : st.size - 1;
+      if (start > end || start >= st.size) {
+        res.writeHead(416, { ...SECURITY_HEADERS, 'Content-Range': `bytes */${st.size}` });
+        return res.end();
+      }
+      res.writeHead(206, { ...SECURITY_HEADERS, ...base, 'Content-Range': `bytes ${start}-${end}/${st.size}`, 'Content-Length': end - start + 1 });
+      return req.method === 'HEAD' ? res.end() : createReadStream(file, { start, end }).pipe(res);
+    }
     const data = await readFile(file);
     send(res, 200, req.method === 'HEAD' ? '' : data, {
       'Content-Type': TYPES[extname(file)] || 'application/octet-stream',
-      'Cache-Control': extname(file) === '.png' ? 'public, max-age=86400' : 'no-cache',
+      'Cache-Control': extname(file) === '.woff2' ? 'public, max-age=31536000, immutable' : extname(file) === '.png' ? 'public, max-age=86400' : 'no-cache',
     });
   } catch {
     send(res, 404, 'Halaman tidak ditemukan', { 'Content-Type': 'text/plain; charset=utf-8' });

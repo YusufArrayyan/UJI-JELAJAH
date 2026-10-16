@@ -1,0 +1,25 @@
+{
+  "role": "koordinator",
+  "duration": 28,
+  "width": 1280,
+  "height": 720,
+  "chapters": [
+    {
+      "t": 1,
+      "label": "Indikator K1 sampai K5"
+    },
+    {
+      "t": 8,
+      "label": "k-anonimitas"
+    },
+    {
+      "t": 14,
+      "label": "Penugasan fasilitator"
+    },
+    {
+      "t": 19,
+      "label": "Mutu AI dan log akses"
+    }
+  ],
+  "recorded_at": "2026-10-16T00:12:12.598Z"
+}

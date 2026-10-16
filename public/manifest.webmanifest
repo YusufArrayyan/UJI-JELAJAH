@@ -1,0 +1,16 @@
+{
+  "name": "Uji Jelajah",
+  "short_name": "Uji Jelajah",
+  "description": "Coba dulu, baru putuskan. Tiga siklus Dugaan, Uji, dan Tinjau. Prototipe dengan data simulasi.",
+  "lang": "id",
+  "start_url": "/#/beranda",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#eceff6",
+  "theme_color": "#151b45",
+  "icons": [
+    { "src": "/img/logo-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/img/logo-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/img/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "maskable" }
+  ]
+}

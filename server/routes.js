@@ -471,6 +471,39 @@ route('POST', '/api/cycles/:id/session', ['peserta'], (ctx) => {
   }
   return { ok: true };
 });
+// ----- Kalender (.ics): sesi Tinjau sebagai berkas, bukan notifikasi -----
+const icsText = (s) => String(s).replace(/\\/g, '\\\\').replace(/[,;]/g, (m) => '\\' + m).replace(/\r?\n/g, '\\n');
+const icsTime = (iso) => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+function icsFile(s, n, withWhom) {
+  const start = Date.parse(s.slot_at);
+  const body = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Uji Jelajah//Prototipe//ID', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:sesi-${s.id}@uji-jelajah`,
+    `DTSTAMP:${icsTime(new Date().toISOString())}`,
+    `DTSTART:${icsTime(new Date(start).toISOString())}`,
+    `DTEND:${icsTime(new Date(start + 30 * 60e3).toISOString())}`,
+    `SUMMARY:${icsText(`Sesi Tinjau Uji Jelajah, siklus ${n}`)}`,
+    `DESCRIPTION:${icsText(`Sesi 30 menit ${withWhom}. Bawa ringkasan refleksimu. Data simulasi.`)}`,
+    'END:VEVENT', 'END:VCALENDAR', '',
+  ].join('\r\n');
+  return { download: { filename: `sesi-tinjau-siklus-${n}.ics`, type: 'text/calendar; charset=utf-8', body } };
+}
+route('GET', '/api/cycles/:id/session.ics', ['peserta'], (ctx) => {
+  const { c } = ownCycle(ctx, ctx.params.id);
+  const s = ctx.db.prepare('SELECT s.*, u.name AS facilitator_name FROM review_sessions s JOIN users u ON u.id = s.facilitator_id WHERE s.cycle_id = ?').get(c.id);
+  if (!s) throw notFound('Sesi untuk siklus ini belum dijadwalkan. Pilih jam sesi dulu.');
+  return icsFile(s, c.n, `dengan fasilitator ${firstName(s.facilitator_name)}`);
+});
+route('GET', '/api/sessions/:id/session.ics', ['fasilitator'], (ctx) => {
+  const s = ctx.db
+    .prepare('SELECT s.*, c.n, u.code FROM review_sessions s JOIN cycles c ON c.id = s.cycle_id JOIN enrollments e ON e.id = c.enrollment_id JOIN users u ON u.id = e.user_id WHERE s.id = ?')
+    .get(int(ctx.params.id));
+  if (!s) throw notFound('Sesi tidak ditemukan. Muat ulang halaman.');
+  if (s.facilitator_id !== ctx.user.id) throw forbidden('Sesi ini milik fasilitator lain.');
+  return icsFile(s, s.n, `bersama peserta ${s.code}`);
+});
+
 route('POST', '/api/cycles/:id/decision', ['peserta'], (ctx) => {
   const { e, c } = ownCycle(ctx, ctx.params.id, 'tinjau');
   const s = ctx.db.prepare('SELECT status FROM review_sessions WHERE cycle_id = ?').get(c.id);

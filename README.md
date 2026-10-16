@@ -11,7 +11,8 @@ Butuh Node.js 22.13 atau lebih baru (memakai `node:sqlite` bawaan). Tidak ada de
 npm run seed   # data simulasi: 95 akun, dua kohort (menimpa basis data lama)
 npm start      # http://localhost:3000
 npm test       # 13 uji unit
-npm run e2e    # ujung ke ujung: API (8 skenario) + antarmuka Chromium (20 pemeriksaan)
+npm run e2e    # ujung ke ujung: API (9 skenario) + antarmuka Chromium (22 pemeriksaan)
+npm run demo:video   # rekam ulang video panduan ke public/media (butuh Playwright)
 ```
 
 Hentikan server dulu sebelum `npm run seed` (di Windows berkas basis data terkunci selama server berjalan).
@@ -40,6 +41,12 @@ ada sama sekali, uji ini dilewati dengan pesan. Untuk memasangnya:
 npm i -D playwright && npx playwright install chromium
 ```
 
+## Panduan dan video
+
+Halaman `#/panduan` (tanpa akun) memuat video cara pakai untuk peserta, fasilitator, dan koordinator, lengkap dengan bab
+dan subtitel, serta langkah tertulis untuk mitra. Video direkam dari aplikasi asli dengan data simulasi oleh
+`npm run demo:video`; jalankan ulang setiap kali tampilan berubah.
+
 ## Akun demo (kata sandi `demo1234`)
 
 | Akun | Keadaan |
@@ -64,11 +71,15 @@ server/
   instruments.js  Butir contoh (bukan instrumen baku)
   seed.js         Pembuat data simulasi
 public/
-  index.html, css/app.css, img/ (logo)
+  index.html, css/app.css, img/ (logo), fonts/ (Newsreader, IBM Plex Sans; OFL), media/ (video panduan),
+                  manifest.webmanifest + sw.js (aplikasi web terpasang)
   js/app.js       Router hash dan kerangka
-  js/views/       auth, peserta, siklus (Dugaan/Uji/Tinjau), fasilitator, koordinator
-docs/DESIGN.notion.md   Acuan sistem desain (PRD 13.2)
+  js/views/       auth, legal, panduan, peserta, siklus (Dugaan/Uji/Tinjau), fasilitator, koordinator
+docs/DESIGN.md          Sistem desain v1.1 "Kompas"
+docs/DESIGN.notion.md   Arsip acuan desain v1.0 (PRD 13.2)
 docs/KETERTELUSURAN.md  Pemetaan PRD ke kode dan uji (hasil uji akhir)
+docs/INOVASI.md         Daftar inovasi teknologi dan buktinya
+scripts/          pw.mjs (pemuat Playwright), record-demo.mjs (perekam video panduan)
 test/             unit.test.js, e2e.test.js (API), ui.test.js (Playwright)
 CHANGELOG.md      Catatan versi (aturan PRD 4.3)
 ```

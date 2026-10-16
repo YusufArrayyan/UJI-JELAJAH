@@ -3,6 +3,32 @@
 Mengikuti aturan perubahan PRD bagian 4.3: setelah v1.0 hanya perbaikan galat, teks, dan penyetelan angka,
 masing-masing dicatat sebagai versi 1.x beserta alasannya.
 
+## 1.1.0 (16 Oktober 2026, tampilan dan fitur pendukung)
+
+Tidak ada peran, tahap, tabel inti, saluran notifikasi, atau aturan bisnis baru (sesuai PRD 4.3).
+Sistem desain diganti dari acuan Notion (PRD 13.2) ke "Kompas" (docs/DESIGN.md), atas keputusan pemilik produk,
+untuk menghilangkan pola tampilan yang umum pada antarmuka buatan AI.
+
+- Navy dan kuning bintang dari logo; kanvas bertint dengan kartu putih; biru kobalt untuk tautan dan kemajuan.
+- Judul dan angka Newsreader (serif), teks IBM Plex Sans; disajikan dari server sendiri (OFL).
+- Beranda: pita sapaan dengan minggu ke-n dari 6, kartu langkah berikutnya, dan cincin menit percobaan.
+- Tiga kartu siklus pastel diganti ubin rute bernomor 01–03 dengan penanda "Kamu di sini".
+- Layar Masuk: judul besar dengan motif cincin kompas dan cuplikan rute asli, bukan orb gradien.
+- Menu ponsel mengambang; angka ringkas fasilitator di pita navy; sebaran tahap berwarna tahap dengan arsir untuk sel < 10.
+- Ikon kilau, panah di tombol, bullet centang, dan ikon dekoratif dihapus.
+- Halaman publik baru: Ketentuan layanan (#/ketentuan) dan Kebijakan privasi (#/privasi).
+- Kontras dihitung ulang; teks tersier dinaikkan ke ≥ 4,5:1.
+
+Fitur pendukung (lihat docs/INOVASI.md):
+
+- Aplikasi web yang bisa dipasang (PWA): manifest dan service worker; data /api tidak pernah disimpan di cache.
+- Integrasi kalender: sesi Tinjau sebagai berkas .ics untuk peserta dan fasilitator.
+- Peta jelajah di Perjalananku: dugaan sebagai titik, keputusan sebagai penghubung.
+- Panduan cara pakai (#/panduan) dengan video demo per peran, bab, dan subtitel; direkam otomatis oleh npm run demo:video.
+- Server mendukung permintaan Range untuk video.
+- Perbaikan: label skor di detail peserta tidak terbaca (teks terang di latar terang).
+- Uji: 13 unit, 9 skenario API, 22 pemeriksaan antarmuka.
+
 ## 1.0.0 (15 Oktober 2026, final, lingkup dibekukan)
 
 Seluruh lingkup PRD v1.0 bagian 4.1 terpasang:

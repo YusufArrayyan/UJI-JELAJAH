@@ -1,5 +1,5 @@
 // Router hash dan kerangka aplikasi.
-import { h, icon, clear } from './dom.js';
+import { h, clear } from './dom.js';
 import { get, post } from './api.js';
 import { ROLE } from './format.js';
 import { skeleton, errorState, toast } from './ui.js';
@@ -8,11 +8,16 @@ import * as peserta from './views/peserta.js';
 import * as siklus from './views/siklus.js';
 import * as fas from './views/fasilitator.js';
 import * as koord from './views/koordinator.js';
+import * as legal from './views/legal.js';
+import * as guide from './views/panduan.js';
 
 const ROUTES = [
   { path: '/masuk', view: auth.masuk, public: true, bare: true, title: 'Masuk' },
   { path: '/konfirmasi/:token', view: auth.konfirmasi, public: true, bare: true, title: 'Konfirmasi mitra' },
-  { path: '/beranda', view: peserta.beranda, role: 'peserta', nav: '/beranda', title: 'Beranda' },
+  { path: '/ketentuan', view: legal.ketentuan, public: true, bare: true, title: 'Ketentuan layanan' },
+  { path: '/privasi', view: legal.privasi, public: true, bare: true, title: 'Kebijakan privasi' },
+  { path: '/panduan', view: guide.panduan, public: true, bare: true, title: 'Panduan cara pakai' },
+  { path: '/beranda', view: peserta.beranda, role: 'peserta', nav: '/beranda', title: 'Beranda', wide: true },
   { path: '/persetujuan', view: peserta.persetujuan, role: 'peserta', nav: '/beranda', title: 'Persetujuan data' },
   { path: '/instrumen/:fase', view: peserta.instrumen, role: 'peserta', nav: '/beranda', title: 'Kuesioner' },
   { path: '/dugaan/:id', view: siklus.dugaan, role: 'peserta', nav: '/beranda', title: 'Dugaan' },
@@ -77,10 +82,9 @@ function shell(route, user, page) {
     h(
       'a',
       { href: '#' + it.href, 'aria-current': route.nav === it.href ? 'page' : null, 'aria-label': it.short && !bottom ? it.label : null },
-      icon(it.icon),
       bottom || !it.short ? (bottom ? it.short ?? it.label : it.label) : [h('span', { class: 'nav-long' }, it.label), h('span', { class: 'nav-short', 'aria-hidden': 'true' }, it.short)],
     );
-  const logout = h('button', { class: 'btn ghost small', type: 'button', 'aria-label': 'Keluar' }, icon('logout'), h('span', { class: 'logout-text', 'aria-hidden': 'true' }, 'Keluar'));
+  const logout = h('button', { class: 'btn ghost small', type: 'button' }, 'Keluar');
   logout.addEventListener('click', async () => {
     try { await post('/api/auth/logout'); } catch { /* tetap keluar di klien */ }
     state.user = null;
@@ -99,7 +103,8 @@ function shell(route, user, page) {
   );
   const bottom = items.length > 1 ? h('nav', { class: 'bottomnav', 'aria-label': 'Navigasi utama' }, items.map((it) => navLink(it, true))) : null;
   document.body.classList.toggle('has-bottom', !!bottom);
-  return [h('a', { class: 'skip-link', href: '#main', onclick: (e) => { e.preventDefault(); document.getElementById('main')?.focus(); } }, 'Lompat ke isi'), header, h('main', { id: 'main', tabindex: '-1' }, page), bottom];
+  const foot = h('footer', { class: 'site-foot' }, h('span', 'Uji Jelajah · prototipe dengan data simulasi'), h('a', { href: '#/panduan' }, 'Panduan cara pakai'), h('a', { href: '#/ketentuan' }, 'Ketentuan layanan'), h('a', { href: '#/privasi' }, 'Kebijakan privasi'));
+  return [h('a', { class: 'skip-link', href: '#main', onclick: (e) => { e.preventDefault(); document.getElementById('main')?.focus(); } }, 'Lompat ke isi'), header, h('main', { id: 'main', tabindex: '-1' }, page), foot, bottom];
 }
 
 let renderSeq = 0;
@@ -181,4 +186,11 @@ window.addEventListener('uj:forbidden', async () => {
   if (u?.id !== prev) go(u ? HOME[u.role] : '/masuk');
 });
 document.body.append(h('div', { class: 'toast-region', 'aria-live': 'polite' }));
+
+// Aplikasi web yang bisa dipasang: daftarkan service worker (kerangka saja, tanpa data /api di cache).
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+window.addEventListener('offline', () => toast('Kamu sedang offline. Isian yang belum terkirim tidak akan tersimpan.', 'err'));
+window.addEventListener('online', () => toast('Tersambung lagi.'));
 render();

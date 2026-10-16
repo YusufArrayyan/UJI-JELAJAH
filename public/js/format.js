@@ -31,3 +31,15 @@ export const PHASE = { pretes: 'Pretes', postes: 'Postes', tindak_lanjut: 'Tinda
 export const ROLE = { peserta: 'Peserta', fasilitator: 'Fasilitator', koordinator: 'Koordinator' };
 
 export const firstName = (n) => String(n || '').split(' ')[0];
+
+/** Rentang tanggal ringkas: "11–25 Okt", "25 Okt–8 Nov", "28 Des 2026–11 Jan 2027". */
+export function dateRange(a, b) {
+  const p = (d) => new Date(d.length === 10 ? d + 'T12:00:00+07:00' : d);
+  const part = (d, opt) => new Intl.DateTimeFormat('id-ID', { timeZone: TZ, ...opt }).format(p(d)).replace('.', '');
+  const [ya, yb] = [part(a, { year: 'numeric' }), part(b, { year: 'numeric' })];
+  const [ma, mb] = [part(a, { month: 'short' }), part(b, { month: 'short' })];
+  const [da, db] = [part(a, { day: 'numeric' }), part(b, { day: 'numeric' })];
+  if (ya !== yb) return `${da} ${ma} ${ya}–${db} ${mb} ${yb}`;
+  if (ma !== mb) return `${da} ${ma}–${db} ${mb}`;
+  return `${da}–${db} ${mb}`;
+}

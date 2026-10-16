@@ -4,28 +4,11 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { createRequire } from 'node:module';
-import { mkdtempSync, rmSync, readFileSync, existsSync, readdirSync } from 'node:fs';
-import { tmpdir, homedir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { mkdtempSync, rmSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { loadPlaywright, launchBrowser } from '../scripts/pw.mjs';
 
-const require = createRequire(import.meta.url);
-function loadPlaywright() {
-  const candidates = [process.env.PLAYWRIGHT_CORE_PATH, 'playwright', 'playwright-core'];
-  // Folder paket global npm: <prefix>/node_modules (Windows) atau <prefix>/lib/node_modules (Unix).
-  const prefix = dirname(process.execPath);
-  for (const root of [join(prefix, 'node_modules'), join(prefix, '..', 'lib', 'node_modules')]) {
-    candidates.push(join(root, 'playwright'), join(root, 'playwright-core'), join(root, '@playwright', 'cli', 'node_modules', 'playwright-core'), join(root, '@playwright', 'cli', 'node_modules', 'playwright'));
-  }
-  for (const c of candidates.filter(Boolean)) {
-    try {
-      if (c.includes('/') || c.includes('\\')) { if (!existsSync(c)) continue; }
-      const m = require(c);
-      if (m.chromium) return m;
-    } catch { /* coba berikutnya */ }
-  }
-  return null;
-}
 const pw = loadPlaywright();
 const skip = pw ? false : 'Playwright tidak ditemukan. Pasang dengan: npm i -D playwright && npx playwright install chromium';
 
@@ -43,26 +26,8 @@ before(async () => {
   server = createApp();
   await new Promise((ok) => server.listen(0, '127.0.0.1', ok));
   base = `http://127.0.0.1:${server.address().port}`;
-  browser = await launchBrowser();
+  browser = await launchBrowser(pw);
 });
-
-/** Chromium bawaan Playwright; bila revisinya belum terunduh, pakai Chrome/Edge sistem atau Chromium lama yang ada. */
-async function launchBrowser() {
-  const tries = [{}, { channel: 'chrome' }, { channel: 'msedge' }];
-  const cache = process.env.PLAYWRIGHT_BROWSERS_PATH || (process.platform === 'win32' ? join(process.env.LOCALAPPDATA || '', 'ms-playwright') : join(homedir(), process.platform === 'darwin' ? 'Library/Caches/ms-playwright' : '.cache/ms-playwright'));
-  try {
-    for (const d of readdirSync(cache).filter((n) => /^chromium-\d+$/.test(n)).sort().reverse()) {
-      for (const exe of ['chrome-win/chrome.exe', 'chrome-win64/chrome.exe', 'chrome-linux/chrome', 'chrome-mac/Chromium.app/Contents/MacOS/Chromium']) {
-        if (existsSync(join(cache, d, exe))) tries.push({ executablePath: join(cache, d, exe) });
-      }
-    }
-  } catch { /* tidak ada cache peramban */ }
-  let last;
-  for (const opt of tries) {
-    try { return await pw.chromium.launch({ headless: true, ...opt }); } catch (err) { last = err; }
-  }
-  throw last;
-}
 after(async () => {
   await browser?.close();
   server?.close();
@@ -102,7 +67,7 @@ test('uji antarmuka Uji Jelajah', { skip }, async (t) => {
     await raka.locator('.demo-btn', { hasText: 'Peserta baru' }).click();
     await raka.waitForURL(/#\/beranda$/);
     assert.equal(await raka.locator('.next h2').innerText(), 'Baca ketentuan data dulu');
-    assert.equal(await raka.locator('.sim-badge').first().innerText(), 'DATA SIMULASI');
+    assert.equal(await raka.locator('.sim-badge').first().innerText(), 'Data simulasi');
   });
 
   await t.test('03 Persetujuan: tombol aktif hanya setelah kotak dicentang (BR1)', async () => {
@@ -130,7 +95,7 @@ test('uji antarmuka Uji Jelajah', { skip }, async (t) => {
     await raka.getByRole('button', { name: 'Kirim pretes' }).click();
     await raka.waitForURL(/#\/beranda$/);
     assert.equal(await raka.locator('.next h2').innerText(), 'Siklus 1: tulis dugaanmu');
-    assert.equal(await raka.locator('.cycle.locked').count(), 2);
+    assert.equal(await raka.locator('.station.locked').count(), 2);
   });
 
   await t.test('06 Dugaan: lima pertanyaan berurutan, data pribadi tersamar', async () => {
@@ -253,7 +218,7 @@ test('uji antarmuka Uji Jelajah', { skip }, async (t) => {
     await raka.getByRole('button', { name: 'Simpan keputusan' }).click();
     await raka.waitForURL(/#\/beranda$/);
     assert.equal(await raka.locator('.next h2').innerText(), 'Siklus 2: tulis dugaanmu');
-    assert.equal(await raka.locator('.cycle.locked').count(), 1);
+    assert.equal(await raka.locator('.station.locked').count(), 1);
   });
 
   await t.test('17 Batas akses: fasilitator tidak bisa membuka layar dan API koordinator (BR12)', async () => {
@@ -306,6 +271,35 @@ test('uji antarmuka Uji Jelajah', { skip }, async (t) => {
     );
     assert.deepEqual(small, []);
     await phone.context().close();
+  });
+
+  await t.test('20a Ketentuan layanan dan kebijakan privasi terbuka tanpa akun', async () => {
+    const guest = await newPage();
+    await guest.goto(base + '/#/masuk');
+    await guest.getByRole('link', { name: 'Kebijakan privasi' }).click();
+    await guest.getByRole('heading', { name: 'Kebijakan privasi', level: 1 }).waitFor();
+    await guest.getByText(/Nomor 27 Tahun 2022/).waitFor();
+    await guest.getByRole('link', { name: 'Ketentuan layanan' }).first().click();
+    await guest.getByRole('heading', { name: 'Ketentuan layanan', level: 1 }).waitFor();
+    await guest.getByRole('heading', { name: 'Bukan layanan konseling' }).waitFor();
+    await guest.context().close();
+  });
+
+  await t.test('20b Peta jelajah dan panduan cara pakai dengan video', async () => {
+    await raka.goto(base + '/#/perjalanan');
+    await raka.getByRole('heading', { name: 'Peta jelajahmu' }).waitFor();
+    assert.equal(await raka.locator('.map-node').count(), 3);
+    assert.equal(await raka.locator('.map-link').count(), 2);
+    await raka.locator('.map-link.ubah').waitFor();
+    await raka.goto(base + '/#/panduan');
+    await raka.getByRole('heading', { name: 'Cara pakai Uji Jelajah' }).waitFor();
+    assert.equal(await raka.getByRole('tab').count(), 4);
+    if (await raka.locator('video').count()) {
+      assert.ok((await raka.locator('.chapter').count()) >= 5);
+      await raka.locator('video track[kind=captions]').waitFor({ state: 'attached' });
+    }
+    await raka.getByRole('tab', { name: 'Mitra' }).click();
+    await raka.getByText('Tekan "Ya, percobaan ini sudah terjadi"', { exact: false }).waitFor();
   });
 
   await t.test('20 Tanpa galat konsol atau status 4xx/5xx tak terduga', async () => {

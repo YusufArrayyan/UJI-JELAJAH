@@ -1,7 +1,7 @@
 // Layar publik: Masuk dan Konfirmasi mitra.
-import { h, icon, busy } from '../dom.js';
+import { h, busy } from '../dom.js';
 import { get, post } from '../api.js';
-import { field, formMessage, notice } from '../ui.js';
+import { field, formMessage, notice, route, compassMotif } from '../ui.js';
 import { dateShort, minutes } from '../format.js';
 import { setUser, go } from '../app.js';
 
@@ -43,7 +43,7 @@ export async function masuk() {
           'div',
           { class: 'demo-list' },
           demo.accounts.map((a) => {
-            const b = h('button', { class: 'demo-btn', type: 'button' }, h('b', a.label), h('small', a.desc), icon('arrowRight'));
+            const b = h('button', { class: 'demo-btn', type: 'button' }, h('b', a.label), h('small', a.desc));
             b.addEventListener('click', busy(b, () => login(a.email, demo.password)));
             return b;
           }),
@@ -58,20 +58,11 @@ export async function masuk() {
     h(
       'section',
       { class: 'auth-side', 'aria-label': 'Tentang Uji Jelajah' },
+      compassMotif('auth-motif'),
       h('div', { class: 'brand', translate: 'no' }, h('img', { src: '/img/logo-192.png', alt: '', width: 40, height: 40 }), 'Uji Jelajah'),
-      h('h1', 'Coba dulu, baru putuskan.'),
+      h('h1', 'Coba dulu, baru ', h('em', 'putuskan.')),
       h('p', { class: 'lede' }, 'Enam minggu, tiga siklus kecil. Tulis dugaan tentang satu pekerjaan, ujilah dalam paling lama 6 jam, lalu tinjau hasilnya bersama fasilitator sebaya.'),
-      h(
-        'div',
-        { class: 'loop' },
-        h(
-          'ol',
-          h('li', { class: 'l1' }, h('em', '1'), h('b', 'Dugaan'), h('span', 'Pendamping AI menanyakan lima hal. Kamu merumuskan satu dugaan.')),
-          h('li', { class: 'l2' }, h('em', '2'), h('b', 'Uji'), h('span', 'Percobaan nyata paling lama 6 jam, dicatat di aplikasi.')),
-          h('li', { class: 'l3' }, h('em', '3'), h('b', 'Tinjau'), h('span', 'Sesi 30 menit dengan fasilitator sebaya. Kamu yang memutuskan.')),
-        ),
-      ),
-      h('img', { class: 'auth-mark', src: '/img/logo-512.png', alt: '', width: 360, height: 360 }),
+      demoPreview(),
     ),
     h(
       'section',
@@ -79,9 +70,10 @@ export async function masuk() {
       h(
         'div',
         { class: 'auth-panel' },
-        h('div', { class: 'stack' }, h('span', { class: 'sim-badge', style: { justifySelf: 'start' } }, 'Prototipe · data simulasi'), h('h2', { style: { fontSize: '24px' } }, 'Masuk ke akunmu')),
+        h('div', { class: 'stack' }, h('span', { class: 'sim-badge', style: { justifySelf: 'start' } }, 'Prototipe · data simulasi'), h('h2', 'Masuk ke akunmu')),
         form,
         demoList,
+        h('p', { class: 'auth-legal' }, h('a', { href: '#/panduan' }, 'Panduan cara pakai (video)'), h('a', { href: '#/ketentuan' }, 'Ketentuan layanan'), h('a', { href: '#/privasi' }, 'Kebijakan privasi')),
       ),
     ),
   );
@@ -101,7 +93,6 @@ export async function konfirmasi({ params }) {
 
   const done = () => {
     card.replaceChildren(
-      h('div', { class: 'done-mark' }, icon('check', { width: '2.5' })),
       h('h1', 'Terima kasih, sudah terkonfirmasi.'),
       h('p', { class: 'muted' }, `${data.participant} akan melihat konfirmasimu di aplikasinya. Tidak ada lagi yang perlu kamu lakukan, dan kamu boleh menutup halaman ini.`),
     );
@@ -114,7 +105,7 @@ export async function konfirmasi({ params }) {
   }
 
   const msg = formMessage();
-  const btn = h('button', { class: 'btn block', type: 'button' }, icon('check'), 'Ya, percobaan ini sudah terjadi');
+  const btn = h('button', { class: 'btn block', type: 'button' }, 'Ya, percobaan ini sudah terjadi');
   btn.addEventListener('click', busy(btn, async () => {
     try {
       data = await post(`/api/confirm/${encodeURIComponent(params.token)}`);
@@ -132,4 +123,23 @@ export async function konfirmasi({ params }) {
     h('p', { class: 'hint' }, `Kami tidak meminta nama atau kontakmu. Tautan ini hanya untuk satu konfirmasi dan berlaku sampai ${dateShort(data.expires_at)}.`),
   );
   return page;
+}
+
+/**
+ * Cuplikan produk asli di layar Masuk: komponen rute yang sama dengan Beranda,
+ * diisi keadaan akun demo Dinda (siklus 1 tahap Uji, 45 dari 120 menit).
+ */
+function demoPreview() {
+  const day = (n) => new Date(Date.now() + n * 86400e3).toISOString().slice(0, 10);
+  const cycles = [
+    { n: 1, stage: 'uji', starts_on: day(-4), due_on: day(10), hypothesis: { saved: true, statement: 'Aku menduga aku akan menikmati mencari pola dalam data penjualan karena suka menebak penyebab sesuatu.' }, experiment: { title: 'Wawancara seorang analis data', logged_minutes: 45, planned_minutes: 120 } },
+    { n: 2, stage: 'dugaan', locked: true, starts_on: day(10), due_on: day(24) },
+    { n: 3, stage: 'dugaan', locked: true, starts_on: day(24), due_on: day(38) },
+  ];
+  return h(
+    'figure',
+    { class: 'demo-frame', 'aria-label': 'Contoh tampilan Beranda peserta' },
+    h('figcaption', { class: 'demo-frame-bar' }, h('span', 'Beranda Dinda, peserta demo'), h('span', 'Siklus 1 dari 3')),
+    route(cycles),
+  );
 }

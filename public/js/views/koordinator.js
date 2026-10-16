@@ -1,8 +1,10 @@
 // Layar koordinator: hanya angka gabungan, tanpa isi pribadi peserta.
-import { h, icon, busy, clear } from '../dom.js';
+import { h, busy, clear } from '../dom.js';
 import { get, post, download } from '../api.js';
 import { field, selectField, notice, formMessage, toast, pageHead, meter, emptyState } from '../ui.js';
 import { dateTime, num } from '../format.js';
+
+const STAGE_COLOR = { Terdaftar: 'var(--ink-3)', 'Siklus 1': 'var(--dugaan)', 'Siklus 2': 'var(--cobalt)', 'Siklus 3': 'var(--tinjau)', Postes: 'var(--uji)', Selesai: 'var(--navy)' };
 
 const KPI_DEF = {
   K1: 'Peserta yang menuntaskan tiga siklus, dibagi peserta yang tenggat siklus 3-nya sudah lewat.',
@@ -15,7 +17,7 @@ function kpiCard(k) {
   const status = k.hidden
     ? h('span', { class: 'tag plain' }, 'Disembunyikan, kurang dari 10 peserta')
     : k.met
-      ? h('span', { class: 'tag ok' }, icon('check'), 'Target tercapai')
+      ? h('span', { class: 'tag ok' }, 'Target tercapai')
       : h('span', { class: 'tag warn' }, 'Belum mencapai target');
   return h(
     'article',
@@ -39,7 +41,7 @@ export async function ringkasan({ go }) {
 
   const k5 = d.kpis.k5;
   const maxStage = Math.max(1, ...d.stages.map((s) => s.n ?? 0));
-  const csv = h('button', { class: 'btn secondary', type: 'button' }, icon('download'), 'Unduh CSV anonim');
+  const csv = h('button', { class: 'btn secondary', type: 'button' }, 'Unduh CSV anonim');
   csv.addEventListener('click', busy(csv, async () => {
     try {
       const name = await download(`/api/coord/export.csv?cohort=${encodeURIComponent(cohort)}`);
@@ -82,6 +84,7 @@ export async function ringkasan({ go }) {
           { class: 'bars' },
           d.stages.map((s) => {
             const tr = h('div', { class: `track${s.n == null ? ' hidden' : ''}` }, h('i'));
+            tr.style.setProperty('--c', STAGE_COLOR[s.label] ?? 'var(--cobalt)');
             if (s.n != null) requestAnimationFrame(() => requestAnimationFrame(() => tr.firstChild.style.setProperty('--v', s.n / maxStage)));
             return h('div', { class: 'bar-row' }, h('span', s.label), tr, h('span', { class: 'n' }, s.n == null ? '<10' : String(s.n)));
           }),
@@ -146,7 +149,7 @@ export async function mitra({ reload }) {
   const fieldF = field({ label: 'Bidang', name: 'field', maxlength: 120, placeholder: 'Misalnya: Analisis data…' });
   const offer = field({ label: 'Yang bisa ditawarkan (opsional)', name: 'offer', maxlength: 200, placeholder: 'Misalnya: Wawancara 1 jam lewat daring…' });
   const msg = formMessage();
-  const add = h('button', { class: 'btn', type: 'submit' }, icon('plus'), 'Tambah mitra');
+  const add = h('button', { class: 'btn', type: 'submit' }, 'Tambah mitra');
   const form = h('form', { class: 'stack', novalidate: true }, h('div', { class: 'grid-2' }, name, fieldF), offer, msg, h('div', add));
   form.addEventListener('submit', (e) => {
     e.preventDefault();

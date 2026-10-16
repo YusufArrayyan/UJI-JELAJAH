@@ -1,6 +1,6 @@
 // Komponen kecil yang dipakai ulang di semua layar.
-import { h, icon, clear } from './dom.js';
-import { STAGE } from './format.js';
+import { h, clear } from './dom.js';
+import { STAGE, DECISION, dateRange, minutes } from './format.js';
 
 let fieldSeq = 0;
 
@@ -75,7 +75,7 @@ export function stageTag(stage, text) {
 }
 
 export function notice(kind, msg, ic) {
-  return h('div', { class: `notice ${kind}`, role: kind === 'err' ? 'alert' : 'status' }, icon(ic ?? (kind === 'ok' ? 'check' : kind === 'err' ? 'alert' : 'info')), h('div', msg));
+  return h('div', { class: `notice ${kind}`, role: kind === 'err' ? 'alert' : 'status' }, h('div', msg));
 }
 
 /** Area pesan di dalam formulir. */
@@ -88,7 +88,7 @@ export function formMessage() {
 
 const toastRegion = () => document.querySelector('.toast-region');
 export function toast(msg, kind = 'ok') {
-  const t = h('div', { class: `toast ${kind === 'err' ? 'err' : ''}`, role: kind === 'err' ? 'alert' : 'status' }, icon(kind === 'err' ? 'alert' : 'check'), h('span', msg));
+  const t = h('div', { class: `toast ${kind === 'err' ? 'err' : ''}`, role: kind === 'err' ? 'alert' : 'status' }, h('span', msg));
   toastRegion()?.append(t);
   setTimeout(() => {
     t.classList.add('out');
@@ -118,7 +118,7 @@ export function skeleton(lines = [56, 120, 120]) {
 }
 
 export function emptyState(ic, title, body, action) {
-  return h('div', { class: 'empty-state' }, icon(ic), h('b', title), body && h('p', body), action);
+  return h('div', { class: 'empty-state' }, h('b', title), body && h('p', body), action);
 }
 
 export function errorState(err, retry) {
@@ -126,7 +126,7 @@ export function errorState(err, retry) {
     'div',
     { class: 'stack' },
     notice('err', err.message || 'Terjadi galat.'),
-    retry && h('div', h('button', { class: 'btn secondary', type: 'button', onclick: retry }, icon('refresh'), 'Coba lagi')),
+    retry && h('div', h('button', { class: 'btn secondary', type: 'button', onclick: retry }, 'Coba lagi')),
   );
 }
 
@@ -136,4 +136,92 @@ export function kv(labelText, value) {
 
 export function quote(text, ai = false) {
   return h('div', { class: `quote-block${ai ? ' ai' : ''}` }, h('p', text || '–'));
+}
+
+/**
+ * Rute tiga siklus: satu garis dengan tiga stasiun bernomor. Menggantikan tiga kartu pastel.
+ * cycles: [{ n, stage, locked, starts_on, due_on, hypothesis, experiment, reflection, href }]
+ */
+export function route(cycles) {
+  const doneCount = cycles.filter((c) => c.stage === 'selesai').length;
+  const currentIdx = cycles.findIndex((c) => c.stage !== 'selesai' && !c.locked);
+  const reach = currentIdx === -1 ? doneCount : currentIdx;
+  const progress = h('li', { class: 'progress', 'aria-hidden': 'true', role: 'presentation' });
+  // Titik stasiun ke-k berada di (k-1)/3 lebar rute; garis berhenti di titik siklus yang sedang berjalan.
+  progress.style.setProperty('--p', String(Math.min(reach, 3) / 3));
+  const stations = cycles.map((c, i) => {
+    const state = c.stage === 'selesai' ? 'done' : c.locked ? 'locked' : i === currentIdx ? 'current' : '';
+    const stageText = c.locked ? 'Terkunci' : STAGE[c.stage];
+    const body = [];
+    if (c.locked) body.push(h('p', { class: 'station-meta' }, c.lockedNote ?? (c.n > 1 ? `Terbuka setelah siklus ${c.n - 1} selesai.` : 'Terbuka setelah pretes selesai.')));
+    else if (c.hypothesis?.saved) body.push(h('p', { class: 'station-quote' }, `“${c.hypothesis.statement}”`));
+    else body.push(h('p', { class: 'station-meta' }, 'Belum ada dugaan.'));
+    if (!c.locked && c.experiment) body.push(h('p', { class: 'station-meta' }, `${c.experiment.title} · ${minutes(c.experiment.logged_minutes)} dari ${minutes(c.experiment.planned_minutes)}`));
+    if (c.reflection?.decision) body.push(h('p', { class: 'station-meta' }, DECISION[c.reflection.decision]));
+    return h(
+      'li',
+      { class: `station ${state}`, 'aria-current': state === 'current' ? 'step' : null },
+      h('span', { class: 'station-dot', 'aria-hidden': 'true' }),
+      h('span', { class: 'station-num', 'aria-hidden': 'true' }, String(c.n).padStart(2, '0')),
+      h('div', { class: 'station-head' }, h('span', { class: 'station-n' }, `Siklus ${c.n}`), c.locked ? null : stageTag(c.stage, stageText)),
+      c.starts_on ? h('p', { class: 'station-dates' }, dateRange(c.starts_on, c.due_on)) : null,
+      body,
+      !c.locked && c.href ? h('a', { href: c.href, 'aria-label': `Buka siklus ${c.n}` }, c.stage === 'selesai' ? 'Baca catatan' : 'Buka siklus') : null,
+    );
+  });
+  return h('ol', { class: 'route', 'aria-label': 'Rute tiga siklus' }, progress, stations);
+}
+
+// ---------- SVG milik merek (tanpa pustaka ikon) ----------
+const NS = 'http://www.w3.org/2000/svg';
+function svg(tag, attrs = {}, ...kids) {
+  const el = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+  for (const k of kids) if (k) el.append(k);
+  return el;
+}
+
+/** Motif cincin kompas dari geometri logo: cincin tebal, empat penunjuk arah, cincin dalam tipis. Dekorasi saja. */
+export function compassMotif(className) {
+  const tick = (rot) => svg('path', { d: 'M100 6 L108 24 L100 20 L92 24 Z', transform: `rotate(${rot} 100 100)`, fill: 'currentColor' });
+  return svg(
+    'svg',
+    { class: className, viewBox: '0 0 200 200', 'aria-hidden': 'true', focusable: 'false' },
+    svg('circle', { cx: 100, cy: 100, r: 70, fill: 'none', stroke: 'currentColor', 'stroke-width': 14 }),
+    svg('circle', { cx: 100, cy: 100, r: 46, fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }),
+    tick(0), tick(90), tick(180), tick(270),
+  );
+}
+
+/** Cincin kemajuan (data nyata, bukan hiasan). value/max dibatasi 0..1. */
+export function gauge(value, max, big, small, label) {
+  const r = 52;
+  const len = 2 * Math.PI * r;
+  const ratio = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
+  const arc = svg('circle', { class: 'arc', cx: 60, cy: 60, r, fill: 'none', 'stroke-width': 10, 'stroke-dasharray': len.toFixed(1), 'stroke-dashoffset': len.toFixed(1) });
+  requestAnimationFrame(() => requestAnimationFrame(() => arc.setAttribute('stroke-dashoffset', (len * (1 - ratio)).toFixed(1))));
+  return h(
+    'div',
+    { class: 'gauge', role: 'img', 'aria-label': label },
+    svg('svg', { viewBox: '0 0 120 120', 'aria-hidden': 'true', focusable: 'false' }, svg('circle', { class: 'track', cx: 60, cy: 60, r, fill: 'none', 'stroke-width': 10 }), arc),
+    h('div', { class: 'gauge-center', 'aria-hidden': 'true' }, h('b', big), h('span', small)),
+  );
+}
+
+/** Tombol "Tambah ke kalender": mengunduh berkas .ics sesi Tinjau dari server. */
+export function calendarButton(path, extraClass = '') {
+  const b = h('button', { class: `btn secondary small ${extraClass}`.trim(), type: 'button' }, 'Tambah ke kalender');
+  b.addEventListener('click', async () => {
+    b.classList.add('is-busy');
+    try {
+      const { download } = await import('./api.js');
+      await download(path);
+      toast('Berkas kalender terunduh. Buka untuk menambahkannya ke kalendermu.');
+    } catch (err) {
+      toast(err.message, 'err');
+    } finally {
+      b.classList.remove('is-busy');
+    }
+  });
+  return b;
 }

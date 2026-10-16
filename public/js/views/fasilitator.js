@@ -1,11 +1,11 @@
 // Layar fasilitator: Kelompokku dan Detail peserta.
-import { h, icon, busy, clear } from '../dom.js';
+import { h, busy, clear } from '../dom.js';
 import { get, post } from '../api.js';
-import { field, stageTag, notice, formMessage, toast, pageHead, kv, quote, emptyState } from '../ui.js';
+import { field, stageTag, notice, formMessage, toast, pageHead, kv, quote, emptyState, calendarButton } from '../ui.js';
 import { dateShort, dateTime, slotLabel, minutes, num, VERDICT, DECISION, STATUS, STAGE } from '../format.js';
 
 function resolveButton(issue, onDone) {
-  const b = h('button', { class: 'btn secondary small', type: 'button' }, icon('check'), 'Tandai selesai');
+  const b = h('button', { class: 'btn secondary small', type: 'button' }, 'Tandai selesai');
   b.addEventListener('click', busy(b, async () => {
     try {
       await post(`/api/issues/${issue.id}/resolve`);
@@ -144,7 +144,7 @@ export async function detail({ params, reload }) {
     h(
       'header',
       { class: 'page-head' },
-      h('a', { class: 'back-link', href: '#/kelompok' }, icon('arrowLeft'), 'Kembali ke kelompok'),
+      h('a', { class: 'back-link', href: '#/kelompok' }, 'Kembali ke kelompok'),
       h('h1', p.name),
       h('p', { class: 'lede' }, h('span', { class: 'mono' }, p.code), ` · ${p.cohort} · ${STATUS[p.status]}`),
     ),
@@ -163,7 +163,7 @@ export async function detail({ params, reload }) {
 
 function cyclePanel(c, locked, reload) {
   const body = h('div', { class: 'body' });
-  const panel = h('section', { class: `cycle-panel ${locked ? '' : c.stage}`, 'aria-labelledby': `cp-${c.id}` }, h('header', h('h2', { id: `cp-${c.id}` }, `Siklus ${c.n}`), locked ? h('span', { class: 'tag plain' }, icon('lock'), 'Terkunci') : stageTag(c.stage)), body);
+  const panel = h('section', { class: `cycle-panel ${locked ? '' : c.stage}`, 'aria-labelledby': `cp-${c.id}` }, h('header', h('h2', { id: `cp-${c.id}` }, `Siklus ${c.n}`), locked ? h('span', { class: 'tag plain' }, 'Terkunci') : stageTag(c.stage)), body);
   const hy = c.hypothesis;
   if (!hy?.saved) {
     body.append(h('p', { class: 'empty' }, locked ? 'Terbuka setelah siklus sebelumnya selesai.' : 'Belum ada dugaan.'));
@@ -232,7 +232,7 @@ function closeSessionForm(s, reload) {
   const form = h(
     'form',
     { class: 'card stack', novalidate: true, style: { background: 'var(--canvas)' } },
-    h('h3', `Sesi Tinjau ${slotLabel(s.slot_at)}`),
+    h('div', { class: 'row between' }, h('h3', `Sesi Tinjau ${slotLabel(s.slot_at)}`), calendarButton(`/api/sessions/${s.id}/session.ics`)),
     note,
     h('label', { class: 'check', for: `chk-${s.id}` }, chk, h('span', 'Aku sudah memeriksa ringkasan Pendamping AI dan mencocokkannya dengan cerita peserta.')),
     msg,
