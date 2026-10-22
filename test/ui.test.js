@@ -302,6 +302,39 @@ test('uji antarmuka Uji Jelajah', { skip }, async (t) => {
     await raka.getByText('Tekan "Ya, percobaan ini sudah terjadi"', { exact: false }).waitFor();
   });
 
+  await t.test('20c Daftar mandiri: catatan jujur, galat per isian, lalu alur peserta baru', async () => {
+    const juri = await newPage();
+    await juri.goto(base + '/#/masuk');
+    await juri.getByRole('link', { name: 'Daftar' }).click();
+    await juri.waitForURL(/#\/masuk\?daftar$/);
+    await assert.doesNotReject(juri.getByText('Akun asli, tetapi keluaran AI masih simulasi dan angka ini bukan bukti dampak.').waitFor());
+    assert.equal(await juri.locator('.demo-btn').count(), 0);
+    await juri.getByLabel('Nama lengkap').fill('Ibu Juri Antarmuka');
+    await juri.getByLabel('Email').fill('juri.ui@kampus.ac.id');
+    await juri.getByLabel('Kata sandi', { exact: true }).fill('pendek');
+    await juri.getByLabel('Ulangi kata sandi').fill('pendek');
+    await juri.getByRole('button', { name: 'Buat akun' }).click();
+    await assert.doesNotReject(juri.getByText('Kata sandi minimal 8 karakter.').waitFor());
+    expected4xx.add('400 /api/auth/register');
+    await juri.getByLabel('Kata sandi', { exact: true }).fill('12345678');
+    await juri.getByLabel('Ulangi kata sandi').fill('12345678');
+    await juri.getByRole('button', { name: 'Buat akun' }).click();
+    await assert.doesNotReject(juri.getByText(/terlalu mudah ditebak/).waitFor());
+    assert.equal(await juri.evaluate(() => document.activeElement?.name), 'password');
+    await juri.getByLabel('Kata sandi', { exact: true }).fill('jelajah-juri-2026');
+    await juri.getByLabel('Ulangi kata sandi').fill('jelajah-juri-2026');
+    await juri.getByRole('button', { name: 'Buat akun' }).click();
+    await juri.waitForURL(/#\/beranda$/);
+    assert.equal(await juri.locator('.next h2').innerText(), 'Baca ketentuan data dulu');
+    await juri.context().close();
+
+    const guide = await newPage();
+    await guide.goto(base + '/#/panduan?peran=mitra');
+    await guide.locator('.guide-steps').waitFor();
+    assert.doesNotMatch(await guide.locator('[role=tabpanel]').innerText(), /\bnull\b/, 'tab Mitra tanpa teks "null"');
+    await guide.context().close();
+  });
+
   await t.test('20 Tanpa galat konsol atau status 4xx/5xx tak terduga', async () => {
     assert.deepEqual(unexpected, []);
   });

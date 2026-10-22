@@ -10,8 +10,8 @@ Butuh Node.js 22.13 atau lebih baru (memakai `node:sqlite` bawaan). Tidak ada de
 ```bash
 npm run seed   # data simulasi: 95 akun, dua kohort (menimpa basis data lama)
 npm start      # http://localhost:3000
-npm test       # 13 uji unit
-npm run e2e    # ujung ke ujung: API (9 skenario) + antarmuka Chromium (22 pemeriksaan)
+npm test       # 19 uji unit
+npm run e2e    # ujung ke ujung: API (12 skenario) + antarmuka Chromium (23 pemeriksaan)
 npm run demo:video   # rekam ulang video panduan ke public/media (butuh Playwright)
 npm run mockup       # buat ulang mockup ponsel untuk esai ke docs/mockup (butuh Playwright)
 npm run demo:bersuara # video demo bersuara satu MP4 ke docs/demo (butuh Playwright, Python: edge-tts, imageio-ffmpeg)
@@ -57,6 +57,25 @@ daftar bab `demo-bab.txt`) dan `Panduan-Penggunaan-Uji-Jelajah.pdf` (langkah per
 Suara dibuat dengan edge-tts (`id-ID-GadisNeural`), yang mengirim teks narasi ke layanan TTS Microsoft; pasang dengan
 `python -m pip install --user edge-tts imageio-ffmpeg`.
 
+## Pendaftaran mandiri (v1.2, untuk juri lomba)
+
+Layar Masuk punya tautan **Belum punya akun? Daftar** (`#/masuk?daftar`): nama, email, kata sandi (minimal 8 karakter,
+kata sandi umum ditolak), dan ulangan kata sandi. Aturannya:
+
+- Peran selalu peserta. Email disimpan huruf kecil dan unik tanpa membedakan huruf besar/kecil (indeks `lower(email)`).
+- Akun ditandai `users.is_demo = 0` (akun seed bernilai 1) dan masuk ke kohort **Uji coba juri** (`cohorts.kind = 'juri'`),
+  yang dibuat saat pendaftar pertama datang. Semua akun juri ditugaskan ke satu fasilitator: yang bebannya paling ringan
+  saat kohort itu dibuat. Nama fasilitatornya tampil di Beranda peserta; masuk dengan akun demo fasilitator itu untuk menutup sesi.
+- Setelah daftar, peserta langsung masuk dan mulai dari persetujuan data, pretes, lalu Dugaan.
+- `POST /api/auth/register` dibatasi 10 percobaan per 15 menit per IP (berhasil atau gagal), memakai batas isi 100 KB yang sama.
+  Email yang sudah dipakai dijawab dengan pesan umum yang tidak menyebut email itu terdaftar.
+- Dasbor koordinator: "Semua kohort simulasi" tidak memuat kohort juri. Kohort juri dipilih sendiri, tetap dengan
+  k-anonimitas (K_MIN = 10); CSV per peserta kohort juri baru bisa diunduh setelah minimal 10 peserta setuju.
+- Basis data lama dimigrasikan otomatis saat server menyala (kolom `is_demo`, `kind`, `facilitator_id`).
+
+Batas yang perlu diketahui: tanpa verifikasi email, keberadaan email tidak bisa disembunyikan sepenuhnya (pendaftaran
+dengan email baru berhasil, dengan email lama tidak). Pesan umum, waktu tanggap yang hampir sama (hash kata sandi tetap dihitung), dan pembatas laju hanya mempersulit penebakan.
+
 ## Akun demo (kata sandi `demo1234`)
 
 | Akun | Keadaan |
@@ -80,6 +99,7 @@ server/
   scoring.js      Skor instrumen, K1–K5, k-anonimitas (K_MIN = 10)
   instruments.js  Butir contoh (bukan instrumen baku)
   seed.js         Pembuat data simulasi
+  signup.js       Pendaftaran mandiri: validasi, kohort juri, akun is_demo = 0
 public/
   index.html, css/app.css, img/ (logo), fonts/ (Newsreader, IBM Plex Sans; OFL), media/ (video panduan),
                   manifest.webmanifest + sw.js (aplikasi web terpasang)

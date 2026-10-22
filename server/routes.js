@@ -1,10 +1,11 @@
 // Rute API JSON. Setiap rute menyatakan peran yang boleh mengaksesnya.
 import { INSTRUMENTS, SCALE, PHASES } from './instruments.js';
 import { SCRIPT, INTRO, scrubPII, runAi, defaultProvider, PROMPT_VERSION } from './ai.js';
-import { scoreAnswers, computeKpis, loadKpiRows, stageDistribution, K_MIN } from './scoring.js';
+import { scoreAnswers, computeKpis, loadKpiRows, stageDistribution, K_MIN, COHORT_SCOPE } from './scoring.js';
 import { verifyPassword, createSession, destroySession, cookieHeader, rateLimiter, SESSION_DAYS } from './auth.js';
 import { HttpError, bad, forbidden, notFound, token, nowIso, wibDate, addDays, isoAddDays, str, int } from './util.js';
 import { tx } from './db.js';
+import { registerParticipant } from './signup.js';
 
 export const EXPERIMENT_TYPES = {
   wawancara: 'Wawancara praktisi',
@@ -19,6 +20,7 @@ const SLOT_TIMES = ['09:00', '13:00', '15:30'];
 const MAX_MIN = 360;
 const loginFails = rateLimiter(8, 5 * 60e3);
 const loginPerIp = rateLimiter(60, 5 * 60e3);
+export const registerPerIp = rateLimiter(10, 15 * 60e3);
 
 const HOME = { peserta: '#/beranda', fasilitator: '#/kelompok', koordinator: '#/ringkasan' };
 
@@ -174,7 +176,11 @@ route('POST', '/api/auth/login', 'publik', (ctx) => {
   // tanpa mengunci satu lab kampus yang berbagi IP), plus batas longgar per IP untuk tebakan acak.
   const key = `${ctx.ip}|${email}`;
   const blocked = loginFails.blocked(key) || loginPerIp.blocked(ctx.ip);
-  if (blocked) throw new HttpError(429, `Terlalu banyak percobaan masuk. Tunggu ${Math.ceil(blocked.retryAfterSec / 60)} menit, lalu coba lagi.`);
+  if (blocked) {
+    const err = new HttpError(429, `Terlalu banyak percobaan masuk. Tunggu ${Math.ceil(blocked.retryAfterSec / 60)} menit, lalu coba lagi.`);
+    err.retryAfterSec = blocked.retryAfterSec;
+    throw err;
+  }
   loginPerIp.hit(ctx.ip);
   if (!email || !password) throw bad('Email dan kata sandi wajib diisi. Lengkapi keduanya, lalu tekan Masuk.');
   const u = ctx.db.prepare('SELECT * FROM users WHERE email = ?').get(email);
@@ -186,6 +192,22 @@ route('POST', '/api/auth/login', 'publik', (ctx) => {
   const t = createSession(ctx.db, u.id);
   ctx.setCookie(cookieHeader(t, SESSION_DAYS * 86400, ctx.secure));
   return { user: { id: u.id, name: u.name, role: u.role, email: u.email }, home: HOME[u.role] };
+});
+// Pendaftaran mandiri: setiap percobaan (berhasil atau gagal) dihitung per IP.
+route('POST', '/api/auth/register', 'publik', (ctx) => {
+  const blocked = registerPerIp.blocked(ctx.ip);
+  if (blocked) {
+    const err = new HttpError(429, `Terlalu banyak pendaftaran dari jaringan ini. Tunggu ${Math.ceil(blocked.retryAfterSec / 60)} menit, lalu coba lagi.`);
+    err.retryAfterSec = blocked.retryAfterSec;
+    throw err;
+  }
+  registerPerIp.hit(ctx.ip);
+  if (ctx.user) throw bad('Kamu sedang masuk dengan akun lain. Keluar dulu, lalu daftar.');
+  const u = registerParticipant(ctx.db, ctx.body);
+  audit(ctx.db, null, 'daftar_akun', u.code);
+  const t = createSession(ctx.db, u.id);
+  ctx.setCookie(cookieHeader(t, SESSION_DAYS * 86400, ctx.secure));
+  return { user: { id: u.id, name: u.name, role: u.role, email: u.email }, home: HOME.peserta };
 });
 route('POST', '/api/auth/logout', 'semua', (ctx) => {
   destroySession(ctx.db, ctx.sessionToken);
@@ -639,10 +661,11 @@ route('POST', '/api/issues/:id/resolve', ['fasilitator'], (ctx) => {
 const cohortParam = (ctx) => (ctx.query.get('cohort') && ctx.query.get('cohort') !== 'semua' ? int(ctx.query.get('cohort')) : null);
 route('GET', '/api/coord/summary', ['koordinator'], (ctx) => {
   const cohortId = cohortParam(ctx);
-  const cohorts = ctx.db.prepare('SELECT c.*, (SELECT COUNT(*) FROM enrollments e WHERE e.cohort_id = c.id) AS n FROM cohorts c ORDER BY starts_on').all();
+  const cohorts = ctx.db.prepare("SELECT c.id, c.name, c.starts_on, c.ends_on, c.kind, (SELECT COUNT(*) FROM enrollments e WHERE e.cohort_id = c.id) AS n FROM cohorts c ORDER BY c.kind = 'juri', c.starts_on").all();
+  const kind = cohortId ? cohorts.find((c) => c.id === cohortId)?.kind ?? null : 'simulasi';
   const rows = loadKpiRows(ctx.db, cohortId);
-  const total = ctx.db.prepare('SELECT COUNT(*) n FROM enrollments WHERE (? IS NULL OR cohort_id = ?)').get(cohortId, cohortId).n;
-  return { cohorts, cohort: cohortId, total, k_min: K_MIN, kpis: computeKpis(rows), stages: stageDistribution(ctx.db, cohortId) };
+  const total = ctx.db.prepare(`SELECT COUNT(*) n FROM enrollments e JOIN cohorts co ON co.id = e.cohort_id WHERE ${COHORT_SCOPE}`).get(cohortId, cohortId).n;
+  return { cohorts, cohort: cohortId, kind, total, k_min: K_MIN, kpis: computeKpis(rows), stages: stageDistribution(ctx.db, cohortId) };
 });
 function facilitatorLoads(db) {
   return db
@@ -718,6 +741,9 @@ route('GET', '/api/coord/audit', ['koordinator'], (ctx) => ({
 route('GET', '/api/coord/export.csv', ['koordinator'], (ctx) => {
   const cohortId = cohortParam(ctx);
   const rows = loadKpiRows(ctx.db, cohortId);
+  // Akun juri adalah orang sungguhan yang saling kenal: baris per peserta baru boleh diunduh bila ≥ K_MIN.
+  const kind = cohortId ? ctx.db.prepare('SELECT kind FROM cohorts WHERE id = ?').get(cohortId)?.kind : 'simulasi';
+  if (kind === 'juri' && rows.length < K_MIN) throw bad(`Kohort uji coba juri berisi kurang dari ${K_MIN} peserta yang sudah setuju. CSV per peserta baru tersedia setelah minimal ${K_MIN} peserta, supaya tidak ada yang bisa dikenali.`);
   const codes = new Map(ctx.db.prepare('SELECT e.id, u.code, c.name AS cohort FROM enrollments e JOIN users u ON u.id = e.user_id JOIN cohorts c ON c.id = e.cohort_id').all().map((r) => [r.id, r]));
   const head = ['kode_peserta', 'kohort', 'status', 'siklus_selesai', 'sesi_selesai', 'keputusan_tercatat', 'adaptabilitas_pretes', 'adaptabilitas_postes', 'adaptabilitas_tindak_lanjut', 'efikasi_pretes', 'efikasi_postes'];
   const esc = (v) => (v == null ? '' : /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));

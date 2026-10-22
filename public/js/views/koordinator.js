@@ -35,7 +35,7 @@ function kpiCard(k) {
 export async function ringkasan({ go }) {
   const cohort = new URLSearchParams(location.hash.split('?')[1] || '').get('kohort') || 'semua';
   const d = await get(`/api/coord/summary?cohort=${encodeURIComponent(cohort)}`);
-  const sel = selectField({ label: 'Kohort', name: 'cohort', value: cohort, options: [{ value: 'semua', label: 'Semua kohort' }, ...d.cohorts.map((c) => ({ value: c.id, label: `${c.name} · ${c.n} peserta` }))] });
+  const sel = selectField({ label: 'Kohort', name: 'cohort', value: cohort, options: [{ value: 'semua', label: 'Semua kohort simulasi' }, ...d.cohorts.map((c) => ({ value: c.id, label: `${c.name}${c.kind === 'juri' ? ' (akun asli)' : ''} · ${c.n} peserta` }))] });
   sel.input.addEventListener('change', () => go(`/ringkasan${sel.input.value === 'semua' ? '' : '?kohort=' + sel.input.value}`));
   sel.style.minWidth = '260px';
 
@@ -55,7 +55,9 @@ export async function ringkasan({ go }) {
     'div',
     { class: 'stack-lg' },
     h('div', { class: 'page-head-row' }, pageHead('Ringkasan program', `${d.total} peserta terdaftar. Hanya angka gabungan yang tampil di sini.`), sel),
-    notice('warn', 'Catatan jujur: semua angka berasal dari data simulasi yang dibangkitkan program. Angka ini menunjukkan perhitungannya berjalan, bukan bukti dampak.', 'info'),
+    d.kind === 'juri'
+      ? notice('warn', `Kohort uji coba juri: akun asli dari pendaftaran mandiri, dihitung terpisah dan tidak masuk angka simulasi. Keluaran AI tetap simulasi, dan angka ini bukan bukti dampak. Angka dari kurang dari ${d.k_min} orang disembunyikan.`, 'info')
+      : notice('warn', `Catatan jujur: semua angka berasal dari data simulasi yang dibangkitkan program. Angka ini menunjukkan perhitungannya berjalan, bukan bukti dampak.${d.cohorts.some((c) => c.kind === 'juri') ? ' Kohort uji coba juri (akun asli) tidak ikut dihitung; pilih kohortnya untuk melihat angkanya sendiri.' : ''}`, 'info'),
     h('div', { class: 'legend', 'aria-hidden': 'true' }, h('span', h('i'), 'Garis tegak = target')),
     h('div', { class: 'kpis' }, [d.kpis.k1, d.kpis.k2, d.kpis.k3, d.kpis.k4].map(kpiCard)),
     h(

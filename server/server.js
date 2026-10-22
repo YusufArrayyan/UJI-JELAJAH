@@ -99,8 +99,8 @@ async function handleApi(db, req, res, url) {
   } catch (err) {
     if (err instanceof HttpError) {
       const h = { ...extraHeaders };
-      if (err.status === 429) h['Retry-After'] = '300';
-      return sendJson(res, err.status, { error: err.message }, h);
+      if (err.status === 429) h['Retry-After'] = String(err.retryAfterSec ?? 300);
+      return sendJson(res, err.status, err.field ? { error: err.message, field: err.field } : { error: err.message }, h);
     }
     console.error('[galat]', err);
     sendJson(res, 500, { error: 'Terjadi galat di server. Coba lagi sebentar lagi.' }, extraHeaders);

@@ -441,6 +441,8 @@ td a.row-link:hover { color: var(--cobalt); }
 .demo-btn small { grid-column: 1; color: var(--ink-2); font-size: 13.5px; }
 .demo-btn::after { content: 'Masuk'; grid-row: 1 / span 2; grid-column: 2; font-size: 13.5px; font-weight: 600; color: var(--on-sun); background: var(--sun-soft); padding: 4px 12px; border-radius: var(--pill); }
 .divider { font-size: 14px; color: var(--ink-2); font-weight: 600; }
+.auth-switch { font-size: 15px; color: var(--ink-2); }
+.auth-switch a { font-weight: 600; }
 .auth-legal { font-size: 13.5px; color: var(--ink-3); display: flex; gap: 16px; flex-wrap: wrap; }
 .auth-legal a { color: var(--ink-2); }
 @media (min-width: 961px) { .auth { align-items: start; } .auth-side { position: sticky; top: 12px; height: calc(100vh - 24px); } .auth-main { min-height: 100vh; } }

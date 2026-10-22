@@ -1,6 +1,6 @@
 {
   "name": "uji-jelajah",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "private": true,
   "description": "Sistem berbantuan AI untuk menumbuhkan adaptabilitas karier mahasiswa lewat tiga siklus Dugaan, Uji, dan Tinjau. Prototipe dengan data simulasi.",
   "type": "module",

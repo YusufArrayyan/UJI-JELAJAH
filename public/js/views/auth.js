@@ -6,7 +6,8 @@ import { dateShort, minutes } from '../format.js';
 import { setUser, go } from '../app.js';
 
 export async function masuk() {
-  const demo = await get('/api/demo-accounts').catch(() => ({ accounts: [] }));
+  const signup = new URLSearchParams(location.hash.split('?')[1] || '').has('daftar');
+  const demo = signup ? { accounts: [] } : await get('/api/demo-accounts').catch(() => ({ accounts: [] }));
   const msg = formMessage();
   const email = field({ label: 'Email', name: 'email', type: 'email', autocomplete: 'username', inputmode: 'email', required: true, spellcheck: 'false' });
   const pass = field({ label: 'Kata sandi', name: 'password', type: 'password', autocomplete: 'current-password', required: true });
@@ -70,8 +71,11 @@ export async function masuk() {
       h(
         'div',
         { class: 'auth-panel' },
-        h('div', { class: 'stack' }, h('span', { class: 'sim-badge', style: { justifySelf: 'start' } }, 'Prototipe · data simulasi'), h('h2', 'Masuk ke akunmu')),
-        form,
+        h('div', { class: 'stack' }, h('span', { class: 'sim-badge', style: { justifySelf: 'start' } }, 'Prototipe · data simulasi'), h('h2', signup ? 'Buat akun peserta' : 'Masuk ke akunmu')),
+        signup ? signupForm() : form,
+        signup
+          ? h('p', { class: 'auth-switch' }, 'Sudah punya akun? ', h('a', { href: '#/masuk' }, 'Masuk'))
+          : h('p', { class: 'auth-switch' }, 'Belum punya akun? ', h('a', { href: '#/masuk?daftar' }, 'Daftar')),
         demoList,
         h('p', { class: 'auth-legal' }, h('a', { href: '#/panduan' }, 'Panduan cara pakai (video)'), h('a', { href: '#/ketentuan' }, 'Ketentuan layanan'), h('a', { href: '#/privasi' }, 'Kebijakan privasi')),
       ),
@@ -123,6 +127,52 @@ export async function konfirmasi({ params }) {
     h('p', { class: 'hint' }, `Kami tidak meminta nama atau kontakmu. Tautan ini hanya untuk satu konfirmasi dan berlaku sampai ${dateShort(data.expires_at)}.`),
   );
   return page;
+}
+
+/** Pendaftaran mandiri (v1.2): peran selalu peserta, masuk ke kohort Uji coba juri. */
+function signupForm() {
+  const msg = formMessage();
+  const name = field({ label: 'Nama lengkap', name: 'name', autocomplete: 'name', required: true, maxlength: 80 });
+  const email = field({ label: 'Email', name: 'email', type: 'email', autocomplete: 'email', inputmode: 'email', required: true, spellcheck: 'false' });
+  const pass = field({ label: 'Kata sandi', hint: 'Minimal 8 karakter. Hindari kata sandi umum seperti 12345678.', name: 'password', type: 'password', autocomplete: 'new-password', required: true, minlength: 8 });
+  const pass2 = field({ label: 'Ulangi kata sandi', name: 'password2', type: 'password', autocomplete: 'new-password', required: true, minlength: 8 });
+  const fields = { name, email, password: pass, password2: pass2 };
+  const submit = h('button', { class: 'btn block', type: 'submit' }, 'Buat akun');
+  const form = h(
+    'form',
+    { class: 'stack', novalidate: true },
+    notice('warn', 'Akun asli, tetapi keluaran AI masih simulasi dan angka ini bukan bukti dampak.', 'info'),
+    h('p', { class: 'hint' }, 'Akun baru selalu berperan peserta dan masuk ke kohort Uji coba juri. Kamu langsung diarahkan ke persetujuan data, pretes, lalu Dugaan.'),
+    name, email, pass, pass2, msg, submit,
+  );
+  form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    busy(submit, async () => {
+      msg.clear();
+      const v = { name: name.input.value.trim(), email: email.input.value.trim(), password: pass.input.value, password2: pass2.input.value };
+      const errs = [];
+      if (v.name.length < 2) errs.push([name, 'Tulis nama lengkapmu, minimal 2 karakter.']);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) errs.push([email, 'Tulis email yang valid, misalnya nama@kampus.ac.id.']);
+      if (v.password.length < 8) errs.push([pass, 'Kata sandi minimal 8 karakter.']);
+      else if (v.password2 !== v.password) errs.push([pass2, 'Ulangan kata sandi belum sama. Ketik ulang kata sandi yang sama.']);
+      if (errs.length) {
+        errs.forEach(([f, m]) => f.setError(m));
+        return errs[0][0].input.focus();
+      }
+      try {
+        const out = await post('/api/auth/register', v);
+        setUser(out.user);
+        go(out.home.replace('#', ''));
+      } catch (err) {
+        const f = fields[err.field];
+        if (f) {
+          f.setError(err.message);
+          f.input.focus();
+        } else msg.show('err', err.message);
+      }
+    })();
+  });
+  return form;
 }
 
 /**

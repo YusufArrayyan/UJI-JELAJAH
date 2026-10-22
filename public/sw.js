@@ -1,6 +1,6 @@
 // Service worker Uji Jelajah: kerangka aplikasi tetap terbuka saat offline.
 // Prinsip privasi: respons /api/ TIDAK pernah disimpan di cache, supaya data peserta tidak tertinggal di perangkat bersama.
-const CACHE = 'uj-shell-v2';
+const CACHE = 'uj-shell-v3';
 const SHELL = [
   '/', '/css/app.css', '/manifest.webmanifest',
   '/js/app.js', '/js/dom.js', '/js/api.js', '/js/ui.js', '/js/format.js',

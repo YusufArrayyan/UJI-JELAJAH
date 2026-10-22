@@ -61,7 +61,10 @@ export function computeKpis(rows, today = wibDate()) {
   return { k1, k2, k3, k4, k5 };
 }
 
-/** Ambil baris indikator dari basis data. cohortId null = semua kohort. */
+/**
+ * Ambil baris indikator dari basis data. cohortId null = semua kohort SIMULASI: kohort juri (akun asli, v1.2)
+ * tidak pernah digabung dengan data simulasi dan hanya terlihat bila dipilih sendiri.
+ */
 export function loadKpiRows(db, cohortId = null) {
   const enr = db
     .prepare(
@@ -71,8 +74,8 @@ export function loadKpiRows(db, cohortId = null) {
         (SELECT COUNT(*) FROM review_sessions s JOIN cycles c ON c.id = s.cycle_id WHERE c.enrollment_id = e.id AND s.status = 'selesai') AS sessionsDone,
         (SELECT COUNT(*) FROM review_sessions s JOIN cycles c ON c.id = s.cycle_id JOIN reflections r ON r.cycle_id = c.id
            WHERE c.enrollment_id = e.id AND s.status = 'selesai' AND r.decision IS NOT NULL) AS sessionsDecided
-       FROM enrollments e JOIN users u ON u.id = e.user_id
-       WHERE e.consent_at IS NOT NULL AND (? IS NULL OR e.cohort_id = ?)`,
+       FROM enrollments e JOIN users u ON u.id = e.user_id JOIN cohorts co ON co.id = e.cohort_id
+       WHERE e.consent_at IS NOT NULL AND ${COHORT_SCOPE}`,
     )
     .all(cohortId, cohortId);
   const resp = db.prepare('SELECT enrollment_id, instrument, phase, score FROM responses').all();
@@ -93,13 +96,16 @@ export function loadKpiRows(db, cohortId = null) {
   });
 }
 
+/** Saringan kohort bersama: kohort tertentu, atau semua kohort simulasi. Butuh alias e dan co. */
+export const COHORT_SCOPE = "(e.cohort_id = ? OR (? IS NULL AND co.kind = 'simulasi'))";
+
 /** Sebaran tahap; sel di bawah K_MIN disembunyikan. */
 export function stageDistribution(db, cohortId = null) {
   const rows = db
     .prepare(
       `SELECT e.status,
         (SELECT MIN(n) FROM cycles c WHERE c.enrollment_id = e.id AND c.stage != 'selesai') AS cur
-       FROM enrollments e WHERE (? IS NULL OR e.cohort_id = ?)`,
+       FROM enrollments e JOIN cohorts co ON co.id = e.cohort_id WHERE ${COHORT_SCOPE}`,
     )
     .all(cohortId, cohortId);
   const buckets = { Terdaftar: 0, 'Siklus 1': 0, 'Siklus 2': 0, 'Siklus 3': 0, Postes: 0, Selesai: 0 };

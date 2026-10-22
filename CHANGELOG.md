@@ -3,6 +3,25 @@
 Mengikuti aturan perubahan PRD bagian 4.3: setelah v1.0 hanya perbaikan galat, teks, dan penyetelan angka,
 masing-masing dicatat sebagai versi 1.x beserta alasannya.
 
+## 1.2.0 (22 Oktober 2026, pendaftaran mandiri untuk juri lomba)
+
+Pengecualian dari PRD 4.3 atas keputusan pemilik produk: pendaftaran mandiri adalah fitur baru, bukan perbaikan.
+PRD tidak diubah. Tidak ada peran atau tahap baru; peran pendaftar selalu peserta dan alur peserta tetap sama.
+
+- Layar Daftar di #/masuk?daftar (tautan "Belum punya akun? Daftar"): nama, email, kata sandi minimal 8 karakter, ulangan kata sandi,
+  dengan catatan "Akun asli, tetapi keluaran AI masih simulasi dan angka ini bukan bukti dampak."
+- POST /api/auth/register: validasi berbahasa Indonesia per isian, kata sandi umum ditolak, email unik tanpa membedakan huruf besar/kecil,
+  pembatas laju 10 per 15 menit per IP, pesan umum untuk email yang sudah dipakai.
+- Skema: users.is_demo (akun seed 1, pendaftar 0), cohorts.kind ('simulasi' atau 'juri') dan cohorts.facilitator_id,
+  indeks unik lower(email). Basis data lama dimigrasikan otomatis.
+- Kohort "Uji coba juri" dibuat saat pendaftar pertama; semua akun juri ditugaskan ke satu fasilitator dengan beban paling ringan.
+- Koordinator: "Semua kohort simulasi" tidak lagi memuat kohort juri; kohort juri tampil terpisah dengan label akun asli,
+  tetap dengan k-anonimitas (K_MIN = 10). CSV per peserta kohort juri ditolak selama kurang dari 10 peserta.
+- Galat 429 kini mengirim Retry-After sesuai sisa waktu, bukan selalu 300 detik.
+- Perbaikan: tab Mitra di #/panduan menampilkan teks "null" (Node.append mengubah null menjadi teks).
+- Panduan: langkah daftar dan catatan untuk juri. Uji: 6 uji unit, 3 skenario API, dan 1 pemeriksaan antarmuka baru.
+- Cache service worker dinaikkan ke uj-shell-v3.
+
 ## 1.1.1 (16 Oktober 2026, mockup dan perbaikan tampilan)
 
 - Mockup ponsel 4 layar untuk esai (docs/mockup, dibuat oleh npm run mockup dari layar asli).

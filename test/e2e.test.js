@@ -245,6 +245,8 @@ test('isi permintaan lebih dari 100 KB ditolak', async () => {
   const c = new Client('10.0.0.50');
   const r = await c.post('/api/auth/login', { email: 'a'.repeat(120 * 1024), password: 'x' });
   assert.equal(r.status, 413);
+  const reg = await new Client('10.0.0.51').post('/api/auth/register', { name: 'a'.repeat(120 * 1024), email: 'besar@kampus.ac.id', password: 'jelajah-juri-2026', password2: 'jelajah-juri-2026' });
+  assert.equal(reg.status, 413);
 });
 
 test('alur akhir program: siklus 3, postes, selesai, tindak lanjut (BR10)', async () => {
@@ -363,4 +365,101 @@ test('kalender .ics, aplikasi web terpasang (PWA), dan media panduan', async () 
     assert.match(media.headers.get('content-range'), /^bytes 0-99\/\d+$/);
     assert.equal((await media.arrayBuffer()).byteLength, 100);
   }
+});
+
+// ---------- Pendaftaran mandiri (v1.2) ----------
+const signup = (over = {}) => ({ name: 'Ibu Juri Lomba', email: 'juri.lomba@kampus.ac.id', password: 'jelajah-juri-2026', password2: 'jelajah-juri-2026', ...over });
+
+test('daftar sukses: langsung masuk ke alur peserta baru, tidak tercampur angka simulasi', async () => {
+  const sari = await new Client('10.0.3.1').login('koordinator@demo.id');
+  const before = (await sari.get('/api/coord/summary')).json;
+  const csvBefore = (await sari.get('/api/coord/export.csv')).text;
+
+  const juri = new Client('10.0.3.2');
+  const r = await juri.post('/api/auth/register', signup({ email: 'Juri.Lomba@Kampus.ac.id' }));
+  ok(r);
+  assert.equal(r.json.user.role, 'peserta');
+  assert.equal(r.json.home, '#/beranda');
+  assert.match(r.headers.get('set-cookie'), /HttpOnly/);
+  assert.equal((await juri.get('/api/me')).json.user.email, 'juri.lomba@kampus.ac.id');
+
+  // Alur peserta baru: persetujuan, pretes, lalu Dugaan
+  let st = (await juri.get('/api/my/state')).json;
+  assert.equal(st.enrollment.cohort, 'Uji coba juri');
+  assert.equal(st.next.href, '#/persetujuan');
+  fails(await juri.post('/api/my/responses', { instrument: 'efikasi', phase: 'pretes', answers: [3, 3, 3, 3] }), 400, /persetujuan/);
+  ok(await juri.post('/api/my/consent', { agree: true }));
+  assert.equal((await juri.get('/api/my/state')).json.next.href, '#/instrumen/pretes');
+  ok(await juri.post('/api/my/responses', { instrument: 'adaptabilitas', phase: 'pretes', answers: [3, 3, 3, 3, 3, 3, 3, 3] }));
+  ok(await juri.post('/api/my/responses', { instrument: 'efikasi', phase: 'pretes', answers: [3, 3, 3, 3] }));
+  st = (await juri.get('/api/my/state')).json;
+  assert.equal(st.next.stage, 'dugaan');
+  assert.equal((await juri.post(`/api/cycles/${st.cycles[0].id}/chat`)).json.answered, 0);
+
+  // Masuk ulang dengan email huruf besar
+  ok(await new Client('10.0.3.3').post('/api/auth/login', { email: 'JURI.LOMBA@kampus.ac.id', password: 'jelajah-juri-2026' }));
+
+  // Koordinator: "semua kohort simulasi" tidak berubah; kohort juri terpisah dengan k-anonimitas
+  const after = (await sari.get('/api/coord/summary')).json;
+  assert.equal(after.total, before.total);
+  assert.deepEqual(after.kpis, before.kpis);
+  assert.deepEqual(after.stages, before.stages);
+  assert.equal(after.kind, 'simulasi');
+  const jc = after.cohorts.find((c) => c.kind === 'juri');
+  assert.equal(jc.name, 'Uji coba juri');
+  assert.equal(jc.n, 1);
+  const js = (await sari.get(`/api/coord/summary?cohort=${jc.id}`)).json;
+  assert.equal(js.kind, 'juri');
+  assert.equal(js.total, 1);
+  for (const k of ['k1', 'k2', 'k3', 'k4', 'k5']) assert.equal(js.kpis[k].hidden, true, `${k} kohort juri disembunyikan (< 10)`);
+  assert.ok(js.stages.every((s) => s.n === null));
+  const csvAfter = await sari.get('/api/coord/export.csv');
+  assert.equal(csvAfter.text, csvBefore, 'CSV semua kohort simulasi tidak berubah');
+  assert.doesNotMatch(csvAfter.text, /J-\d{3}|juri/i, 'CSV simulasi tanpa akun juri');
+  fails(await sari.get(`/api/coord/export.csv?cohort=${jc.id}`), 400, /kurang dari 10/);
+  assert.ok((await sari.get('/api/coord/audit')).json.events.some((e) => e.action === 'daftar_akun' && /^J-\d{3}$/.test(e.target)));
+
+  // Fasilitator kohort juri melihat akun baru di kelompoknya
+  const facEmail = { 'Nadia Putri': 'fasilitator', 'Bima Saputra': 'fasilitator2', 'Citra Anjani': 'fasilitator3', 'Dimas Prasetyo': 'fasilitator4', 'Eka Rahmawati': 'fasilitator5' }[st.enrollment.facilitator];
+  const fac = await new Client('10.0.3.4').login(`${facEmail}@demo.id`);
+  assert.ok((await fac.get('/api/fac/participants')).json.participants.some((p) => p.name === 'Ibu Juri Lomba'));
+});
+
+test('daftar: email ganda, kata sandi lemah, dan isian tidak lengkap ditolak dengan pesan Indonesia', async () => {
+  ok(await new Client('10.0.4.1').post('/api/auth/register', signup({ email: 'juri.ganda@kampus.ac.id' })));
+  const dup = await new Client('10.0.4.2').post('/api/auth/register', signup({ email: 'JURI.GANDA@kampus.ac.id', password: 'sandi-berbeda-99', password2: 'sandi-berbeda-99' }));
+  fails(dup, 400, /belum bisa diproses/);
+  const demo = await new Client('10.0.4.2').post('/api/auth/register', signup({ email: 'dinda@demo.id' }));
+  assert.equal(demo.json.error, dup.json.error, 'pesan email terpakai sama untuk semua akun, tidak menyebut "terdaftar"');
+  assert.doesNotMatch(dup.json.error, /sudah terdaftar|sudah dipakai/);
+  assert.equal(dup.json.field, undefined, 'tidak menunjuk isian email');
+  // Akun demo tetap bisa masuk dengan kata sandinya sendiri
+  ok(await new Client('10.0.4.9').post('/api/auth/login', { email: 'dinda@demo.id', password: 'demo1234' }));
+
+  const weak = await new Client('10.0.4.3').post('/api/auth/register', signup({ email: 'lemah@kampus.ac.id', password: 'abc123', password2: 'abc123' }));
+  fails(weak, 400, /minimal 8 karakter/);
+  assert.equal(weak.json.field, 'password');
+  fails(await new Client('10.0.4.3').post('/api/auth/register', signup({ email: 'lemah@kampus.ac.id', password: '12345678', password2: '12345678' })), 400, /mudah ditebak/);
+  const mismatch = await new Client('10.0.4.4').post('/api/auth/register', signup({ email: 'beda@kampus.ac.id', password2: 'lain-sendiri-2026' }));
+  fails(mismatch, 400, /belum sama/);
+  assert.equal(mismatch.json.field, 'password2');
+  fails(await new Client('10.0.4.4').post('/api/auth/register', {}), 400, /nama lengkap/);
+  fails(await new Client('10.0.4.4').post('/api/auth/register', signup({ email: 'bukan-email' })), 400, /email yang valid/);
+
+  // Peran selalu peserta, walau klien mengirim peran lain
+  const sneaky = await new Client('10.0.4.5').post('/api/auth/register', { ...signup({ email: 'peran@kampus.ac.id' }), role: 'koordinator' });
+  ok(sneaky);
+  assert.equal(sneaky.json.user.role, 'peserta');
+
+  // Daftar akun demo tetap tampil (DEMO_MODE bawaan)
+  assert.ok((await new Client('10.0.4.6').get('/api/demo-accounts')).json.accounts.length >= 5);
+});
+
+test('pembatasan 10 pendaftaran per 15 menit per IP', async () => {
+  const c = new Client('10.0.5.1');
+  for (let i = 0; i < 10; i++) fails(await c.post('/api/auth/register', signup({ email: `banyak${i}@kampus.ac.id`, password: 'pendek', password2: 'pendek' })), 400);
+  const blocked = await c.post('/api/auth/register', signup({ email: 'banyak-ok@kampus.ac.id' }));
+  fails(blocked, 429, /Terlalu banyak pendaftaran/);
+  assert.ok(Number(blocked.headers.get('retry-after')) > 0);
+  ok(await new Client('10.0.5.2').post('/api/auth/register', signup({ email: 'banyak-ok@kampus.ac.id' })));
 });

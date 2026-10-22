@@ -26,6 +26,7 @@ export async function api(path, { method = 'GET', body } = {}) {
   }
   if (!res.ok) {
     const err = new ApiError(res.status, data?.error || 'Terjadi galat. Coba lagi sebentar lagi.');
+    if (data?.field) err.field = data.field;
     if (res.status === 401 && path !== '/api/auth/login') window.dispatchEvent(new CustomEvent('uj:unauthorized'));
     if (res.status === 403) window.dispatchEvent(new CustomEvent('uj:forbidden'));
     throw err;

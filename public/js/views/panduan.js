@@ -7,7 +7,8 @@ const ROLES = [
     label: 'Peserta',
     lede: 'Dari persetujuan sampai keputusan di akhir siklus pertama.',
     steps: [
-      'Masuk, baca ketentuan data, lalu centang persetujuan.',
+      'Masuk dengan akun demo, atau buat akun sendiri lewat "Belum punya akun? Daftar" di layar Masuk.',
+      'Baca ketentuan data, lalu centang persetujuan.',
       'Isi pretes: 12 butir, sekitar 5 menit.',
       'Dugaan: jawab lima pertanyaan Pendamping AI, lalu sunting draf dugaannya sampai sesuai maksudmu.',
       'Uji: pilih jenis percobaan, catat waktu dengan penghitung atau manual (paling lama 6 jam), kirim tautan ke mitra.',
@@ -64,7 +65,7 @@ async function panel(role) {
   }
   const steps = h('ol', { class: 'guide-steps' }, role.steps.map((s) => h('li', s)));
   if (!meta) {
-    box.append(h('p', { class: 'lede' }, role.lede), role.key === 'mitra' ? null : h('p', { class: 'notice info' }, 'Video untuk peran ini belum tersedia. Ikuti langkah tertulis di bawah.'), steps);
+    box.append(h('p', { class: 'lede' }, role.lede), ...(role.key === 'mitra' ? [] : [h('p', { class: 'notice info' }, 'Video untuk peran ini belum tersedia. Ikuti langkah tertulis di bawah.')]), steps);
     return box;
   }
   const video = h(
@@ -137,6 +138,13 @@ export async function panduan() {
       { class: 'partner-card guide', style: { maxWidth: '1100px' } },
       h('h1', 'Cara pakai Uji Jelajah'),
       h('p', { class: 'muted' }, 'Video direkam langsung dari aplikasi ini dengan akun demo dan data simulasi.'),
+      h(
+        'p',
+        { class: 'notice info' },
+        'Juri lomba bisa membuat akun sendiri: buka ',
+        h('a', { href: '#/masuk?daftar' }, 'Daftar'),
+        '. Akun baru selalu peserta dan masuk ke kohort "Uji coba juri" dengan satu fasilitator, yang namanya tampil di Beranda. Untuk menutup sesi Tinjau, masuk dengan akun demo fasilitator itu (kata sandi demo1234). Akun asli, tetapi keluaran AI masih simulasi dan angka ini bukan bukti dampak.',
+      ),
       tabs,
       area,
       h('p', { class: 'auth-legal' }, h('a', { href: '#/ketentuan' }, 'Ketentuan layanan'), h('a', { href: '#/privasi' }, 'Kebijakan privasi')),

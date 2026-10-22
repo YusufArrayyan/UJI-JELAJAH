@@ -13,13 +13,16 @@ CREATE TABLE IF NOT EXISTS users (
   role TEXT NOT NULL CHECK (role IN ('peserta','fasilitator','koordinator')),
   password_hash TEXT NOT NULL,
   code TEXT UNIQUE,
+  is_demo INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS cohorts (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
   starts_on TEXT NOT NULL,
-  ends_on TEXT NOT NULL
+  ends_on TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'simulasi' CHECK (kind IN ('simulasi','juri')),
+  facilitator_id INTEGER REFERENCES users(id) ON DELETE SET NULL
 );
 CREATE TABLE IF NOT EXISTS enrollments (
   id INTEGER PRIMARY KEY,
@@ -151,6 +154,7 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
   expires_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_enr_fac ON enrollments(facilitator_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_ci ON users(lower(email));
 CREATE INDEX IF NOT EXISTS idx_cycles_enr ON cycles(enrollment_id);
 CREATE INDEX IF NOT EXISTS idx_msgs_cycle ON ai_messages(cycle_id);
 CREATE INDEX IF NOT EXISTS idx_issues_enr ON issues(enrollment_id);
@@ -161,8 +165,22 @@ export function openDb(path = DB_PATH) {
   const db = new DatabaseSync(path);
   if (path !== ':memory:') db.exec('PRAGMA journal_mode = WAL;');
   db.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 3000;');
+  migrate(db);
   db.exec(SCHEMA);
   return db;
+}
+
+/**
+ * Basis data lama (misalnya disk Render) dibuat sebelum v1.2: tambahkan kolom baru. Semua akun lama berasal
+ * dari seed, jadi is_demo bawaan 1; akun dari pendaftaran mandiri ditulis is_demo = 0.
+ */
+function migrate(db) {
+  const cols = (t) => db.prepare(`PRAGMA table_info(${t})`).all().map((c) => c.name);
+  const users = cols('users');
+  if (users.length && !users.includes('is_demo')) db.exec('ALTER TABLE users ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 1');
+  const cohorts = cols('cohorts');
+  if (cohorts.length && !cohorts.includes('kind')) db.exec("ALTER TABLE cohorts ADD COLUMN kind TEXT NOT NULL DEFAULT 'simulasi' CHECK (kind IN ('simulasi','juri'))");
+  if (cohorts.length && !cohorts.includes('facilitator_id')) db.exec('ALTER TABLE cohorts ADD COLUMN facilitator_id INTEGER REFERENCES users(id) ON DELETE SET NULL');
 }
 
 /** Jalankan fn di dalam transaksi; batalkan bila galat. */
