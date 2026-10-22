@@ -39,7 +39,7 @@ export async function masuk() {
     ? h(
         'section',
         { class: 'stack', 'aria-labelledby': 'demo-h' },
-        h('div', { class: 'divider', id: 'demo-h' }, 'atau coba akun demo'),
+        h('div', { class: 'divider', id: 'demo-h' }, 'Atau coba tanpa mendaftar'),
         h(
           'div',
           { class: 'demo-list' },
@@ -49,7 +49,7 @@ export async function masuk() {
             return b;
           }),
         ),
-        h('p', { class: 'hint' }, `Semua akun demo memakai kata sandi ${demo.password}. Isinya data simulasi.`),
+        h('p', { class: 'hint' }, `Akun demo berisi data contoh, bukan mahasiswa sungguhan. Kata sandi semuanya ${demo.password}.`),
       )
     : null;
 
@@ -61,8 +61,16 @@ export async function masuk() {
       { class: 'auth-side', 'aria-label': 'Tentang Uji Jelajah' },
       compassMotif('auth-motif'),
       h('div', { class: 'brand', translate: 'no' }, h('img', { src: '/img/logo-192.png', alt: '', width: 40, height: 40 }), 'Uji Jelajah'),
+      h('p', { class: 'auth-kicker' }, 'Program karier enam minggu untuk mahasiswa S1'),
       h('h1', 'Coba dulu, baru ', h('em', 'putuskan.')),
-      h('p', { class: 'lede' }, 'Enam minggu, tiga siklus kecil. Tulis dugaan tentang satu pekerjaan, ujilah dalam paling lama 6 jam, lalu tinjau hasilnya bersama fasilitator sebaya.'),
+      h('p', { class: 'lede' }, 'Punya bayangan tentang satu pekerjaan, tapi belum yakin cocok? Di Uji Jelajah kamu mengujinya sendiri lewat percobaan kecil, lalu memutuskan langkah berikutnya.'),
+      h(
+        'ol',
+        { class: 'auth-steps', 'aria-label': 'Cara kerja Uji Jelajah' },
+        h('li', h('b', 'Dugaan'), h('span', 'Tulis apa yang kamu bayangkan tentang pekerjaan itu. Pendamping AI hanya bertanya dan merangkum, tidak memberi saran.')),
+        h('li', h('b', 'Uji'), h('span', 'Coba paling lama 6 jam, misalnya mewawancarai praktisi atau ikut proyek mini.')),
+        h('li', h('b', 'Tinjau'), h('span', 'Bahas hasilnya 30 menit dengan fasilitator sebaya, lalu putuskan: lanjut, ubah, atau tinggalkan dugaanmu.')),
+      ),
       demoPreview(),
     ),
     h(
@@ -142,7 +150,7 @@ function signupForm() {
     'form',
     { class: 'stack', novalidate: true },
     notice('warn', 'Akun asli, tetapi keluaran AI masih simulasi dan angka ini bukan bukti dampak.', 'info'),
-    h('p', { class: 'hint' }, 'Akun baru selalu berperan peserta dan masuk ke kohort Uji coba juri. Kamu langsung diarahkan ke persetujuan data, pretes, lalu Dugaan.'),
+    h('p', { class: 'hint' }, 'Akun baru selalu akun peserta dan masuk kohort Uji coba juri, terpisah dari data contoh. Setelah daftar, kamu mulai dari persetujuan data, kuesioner awal, lalu dugaan pertama.'),
     name, email, pass, pass2, msg, submit,
   );
   form.addEventListener('submit', (ev) => {
@@ -189,7 +197,7 @@ function demoPreview() {
   return h(
     'figure',
     { class: 'demo-frame', 'aria-label': 'Contoh tampilan Beranda peserta' },
-    h('figcaption', { class: 'demo-frame-bar' }, h('span', 'Beranda Dinda, peserta demo'), h('span', 'Siklus 1 dari 3')),
+    h('figcaption', { class: 'demo-frame-bar' }, h('span', 'Contoh Beranda peserta (akun demo Dinda)'), h('span', 'Siklus 1 dari 3')),
     route(cycles),
   );
 }

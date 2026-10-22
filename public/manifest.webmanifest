@@ -1,7 +1,7 @@
 {
   "name": "Uji Jelajah",
   "short_name": "Uji Jelajah",
-  "description": "Coba dulu, baru putuskan. Tiga siklus Dugaan, Uji, dan Tinjau. Prototipe dengan data simulasi.",
+  "description": "Program karier enam minggu untuk mahasiswa S1: uji satu pilihan pekerjaan lewat percobaan kecil. Prototipe dengan data simulasi.",
   "lang": "id",
   "start_url": "/#/beranda",
   "scope": "/",

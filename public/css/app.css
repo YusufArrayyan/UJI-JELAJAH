@@ -421,6 +421,12 @@ td a.row-link:hover { color: var(--cobalt); }
 .auth-side h1 { position: relative; color: var(--on-navy); font-size: clamp(48px, 5.6vw, 84px); line-height: 0.95; font-weight: 900; letter-spacing: -0.03em; max-width: 10ch; }
 .auth-side h1 em { font-style: normal; color: var(--sun); }
 .auth-side .lede { position: relative; color: var(--on-navy-2); font-size: 18px; max-width: 42ch; }
+.auth-kicker { position: relative; color: var(--sun); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: -12px; }
+.auth-steps { position: relative; list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-width: 52ch; counter-reset: langkah; }
+.auth-steps li { display: grid; grid-template-columns: 26px 64px 1fr; gap: 10px; align-items: baseline; color: var(--on-navy-2); font-size: 15px; line-height: 1.45; counter-increment: langkah; }
+.auth-steps li::before { content: counter(langkah); display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--sun); color: var(--navy); font-size: 13px; font-weight: 700; }
+.auth-steps b { color: var(--on-navy); font-weight: 600; }
+@media (max-width: 560px) { .auth-steps li { grid-template-columns: 26px 1fr; } .auth-steps li span { grid-column: 2; } }
 .auth-motif { position: absolute; right: -170px; top: -150px; width: 560px; height: 560px; color: var(--navy-3); pointer-events: none; }
 .demo-frame { position: relative; margin: auto 0 0; background: var(--card); color: var(--ink); border-radius: var(--r-lg); padding: 18px; display: grid; gap: 14px; max-width: 720px; }
 .demo-frame-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; color: var(--ink-3); padding: 0 4px; }
@@ -500,7 +506,11 @@ td a.row-link:hover { color: var(--cobalt); }
   .auth-side { gap: 18px; padding-top: 32px; padding-bottom: 28px; }
   .auth-side h1 { font-size: clamp(44px, 4.6vw, 64px); }
   .auth-side .lede { font-size: 16px; }
+  .auth-steps li { font-size: 14px; }
   .demo-frame .station-quote { -webkit-line-clamp: 2; }
+}
+@media (min-width: 961px) and (max-height: 1000px) {
+  .demo-frame { display: none; }
 }
 
 /* Judul serif Newsreader: berat 500–600, tanpa peregangan lebar. Menimpa nilai berat di atas. */

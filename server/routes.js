@@ -220,11 +220,11 @@ route('GET', '/api/demo-accounts', 'publik', () => {
   return {
     password: 'demo1234',
     accounts: [
-      { email: 'raka@demo.id', role: 'peserta', label: 'Peserta baru', desc: 'Raka, belum memberi persetujuan' },
-      { email: 'dinda@demo.id', role: 'peserta', label: 'Peserta di tahap Uji', desc: 'Dinda, siklus 1, 45 dari 120 menit tercatat' },
-      { email: 'fikri@demo.id', role: 'peserta', label: 'Peserta di tahap Tinjau', desc: 'Fikri, siklus 2, sesi terjadwal' },
-      { email: 'fasilitator@demo.id', role: 'fasilitator', label: 'Fasilitator', desc: 'Nadia Putri, satu kelompok' },
-      { email: 'koordinator@demo.id', role: 'koordinator', label: 'Koordinator', desc: 'Dr. Sari Wulandari, dua kohort' },
+      { email: 'raka@demo.id', role: 'peserta', label: 'Peserta baru', desc: 'Mulai dari awal sebagai Raka: persetujuan data, kuesioner, dugaan pertama' },
+      { email: 'dinda@demo.id', role: 'peserta', label: 'Peserta di tahap Uji', desc: 'Dinda sedang menjalani percobaan pertamanya' },
+      { email: 'fikri@demo.id', role: 'peserta', label: 'Peserta di tahap Tinjau', desc: 'Fikri di siklus kedua dan sudah menjadwalkan sesi Tinjau' },
+      { email: 'fasilitator@demo.id', role: 'fasilitator', label: 'Fasilitator', desc: 'Nadia mendampingi 20 peserta dan menutup sesi Tinjau' },
+      { email: 'koordinator@demo.id', role: 'koordinator', label: 'Koordinator', desc: 'Dr. Sari memantau angka program tanpa melihat data pribadi peserta' },
     ],
   };
 });
