@@ -15,6 +15,8 @@
     "e2e:api": "node --test test/e2e.test.js",
     "e2e:ui": "node --test test/ui.test.js",
     "demo:video": "node scripts/record-demo.mjs",
+    "demo:bersuara": "node scripts/demo-bersuara.mjs",
+    "panduan:pdf": "node scripts/panduan-pdf.mjs",
     "mockup": "node scripts/mockup.mjs"
   }
 }

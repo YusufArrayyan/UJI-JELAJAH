@@ -1,0 +1,191 @@
+1
+00:00:00,445 --> 00:00:11,385
+Halo! Ini demo penggunaan Uji Jelajah, aplikasi berbantuan AI yang membantu mahasiswa menguji pilihan kariernya lewat percobaan kecil.
+
+2
+00:00:11,796 --> 00:00:22,856
+Programnya berjalan enam minggu, dalam tiga siklus. Setiap siklus punya tiga tahap: Dugaan, Uji, dan Tinjau.
+
+3
+00:00:23,285 --> 00:00:33,655
+Ada empat peran: peserta, mitra, fasilitator sebaya, dan koordinator. Kita lihat satu per satu.
+
+4
+00:00:35,420 --> 00:00:43,240
+Semua dimulai dari halaman Masuk. Isi surel dan kata sandi akunmu, lalu tekan Masuk.
+
+5
+00:00:44,874 --> 00:00:57,284
+Untuk mencoba, tersedia akun demo. Cukup tekan salah satu tombol ini. Semua akun demo memakai kata sandi demo satu dua tiga empat.
+
+6
+00:00:58,757 --> 00:01:07,637
+Bagian pertama: peserta. Kita masuk sebagai Raka, peserta baru yang belum memberi persetujuan data.
+
+7
+00:01:08,887 --> 00:01:18,557
+Ini Beranda. Di bagian atas selalu ada satu langkah berikutnya, jadi peserta tidak perlu menebak harus mulai dari mana.
+
+8
+00:01:19,536 --> 00:01:25,726
+Langkah pertama adalah persetujuan data. Bacalah ketentuannya.
+
+9
+00:01:26,126 --> 00:01:34,816
+Data baru disimpan setelah peserta setuju. Pendamping AI tidak mendiagnosis dan tidak memberi saran karier.
+
+10
+00:01:36,291 --> 00:01:44,811
+Berikutnya pretes: dua kuesioner singkat. Pilih jawaban yang paling sesuai untuk setiap pernyataan.
+
+11
+00:01:47,037 --> 00:01:57,737
+Pretes terkirim. Siklus satu sekarang terbuka. Siklus dua dan tiga masih terkunci sampai siklus sebelumnya selesai.
+
+12
+00:01:59,428 --> 00:02:10,398
+Tahap pertama, Dugaan. Pendamping AI akan menanyakan lima pertanyaan. Peserta menjawab dengan kata-katanya sendiri.
+
+13
+00:02:10,750 --> 00:02:22,080
+Pertanyaannya meliputi pekerjaan yang ingin diuji, kegiatan sehari-harinya, dugaan peserta, cara mengujinya, dan tanda bahwa dugaannya benar.
+
+14
+00:02:22,529 --> 00:02:32,249
+Setelah lima jawaban, tekan Susun draf dugaan. Pendamping AI merangkai jawaban tadi menjadi satu kalimat dugaan.
+
+15
+00:02:34,443 --> 00:02:44,863
+Draf ini milik peserta, jadi boleh disunting. Fasilitator nanti melihat versi AI dan versi peserta secara berdampingan.
+
+16
+00:02:45,851 --> 00:02:58,501
+Tahap kedua, Uji. Rancang satu percobaan kecil: pilih jenisnya, beri judul, dan perkirakan waktunya. Paling lama enam jam.
+
+17
+00:03:00,311 --> 00:03:09,361
+Selama percobaan, catat waktunya. Bisa memakai penghitung waktu, atau diisi manual dalam menit.
+
+18
+00:03:11,788 --> 00:03:24,288
+Di bawahnya ada tautan konfirmasi. Kirim tautan ini ke mitra percobaan, misalnya praktisi yang diwawancarai. Mitra tidak perlu membuat akun.
+
+19
+00:03:25,452 --> 00:03:32,152
+Kalau percobaan sudah selesai, tekan Selesaikan percobaan, lalu konfirmasi.
+
+20
+00:03:33,171 --> 00:03:46,541
+Tahap ketiga, Tinjau. Ceritakan apa yang terjadi selama percobaan, lalu nilai dugaanmu sendiri: terbukti, terbukti sebagian, atau tidak terbukti.
+
+21
+00:03:48,240 --> 00:03:58,800
+Pendamping AI membuat ringkasan refleksi. Periksa dan ubah bila perlu, karena ringkasan ini dibawa ke sesi dengan fasilitator.
+
+22
+00:03:59,911 --> 00:04:07,281
+Lalu pilih jadwal sesi tiga puluh menit dengan fasilitator sebaya, dan tekan Jadwalkan sesi.
+
+23
+00:04:08,945 --> 00:04:18,475
+Sesi terjadwal dan bisa ditambahkan ke kalender. Pilihan keputusan baru terbuka setelah fasilitator menutup sesi.
+
+24
+00:04:20,286 --> 00:04:34,086
+Sesi sudah ditutup fasilitator. Sekarang peserta sendiri yang memutuskan: lanjutkan, ubah, atau tinggalkan dugaannya. Raka memilih Ubah dugaan.
+
+25
+00:04:35,830 --> 00:04:44,520
+Siklus satu selesai, dan siklus dua terbuka. Siklus berikutnya dijalani dengan cara yang sama.
+
+26
+00:04:45,538 --> 00:04:54,948
+Menu Perjalananku menampilkan peta jelajah: setiap dugaan, percobaan, dan keputusan tergambar sebagai satu jalur.
+
+27
+00:04:57,498 --> 00:05:06,638
+Bagian kedua: mitra. Mitra adalah orang yang membantu percobaan, misalnya praktisi yang diwawancarai.
+
+28
+00:05:07,180 --> 00:05:18,120
+Mitra membuka tautan dari peserta. Halaman ini menampilkan nama peserta, judul percobaan, jenis, dan durasinya.
+
+29
+00:05:18,553 --> 00:05:24,483
+Jika percobaan memang sudah terjadi, mitra cukup menekan satu tombol.
+
+30
+00:05:24,879 --> 00:05:34,099
+Selesai. Konfirmasi ini langsung tampil di aplikasi peserta. Tautan berlaku tiga puluh hari.
+
+31
+00:05:35,071 --> 00:05:42,271
+Bagian ketiga: fasilitator sebaya. Kita masuk sebagai Nadia Putri.
+
+32
+00:05:43,483 --> 00:05:51,333
+Halaman Kelompokku menampilkan tahap setiap peserta, sesi mendatang, dan kendala yang masih terbuka.
+
+33
+00:05:52,444 --> 00:06:00,174
+Gunakan saringan untuk menemukan peserta yang perlu perhatian, misalnya yang punya kendala atau tenggatnya lewat.
+
+34
+00:06:00,584 --> 00:06:08,144
+Saringan Sesi terjadwal menampilkan peserta yang akan bertemu. Kita buka detail Fikri.
+
+35
+00:06:09,237 --> 00:06:17,737
+Ini detail peserta. Setiap kali fasilitator membuka data peserta, aksesnya tercatat di log.
+
+36
+00:06:18,867 --> 00:06:27,507
+Versi Pendamping AI dan versi peserta tampil berdampingan, sehingga fasilitator bisa melihat apa yang diubah peserta.
+
+37
+00:06:28,611 --> 00:06:37,371
+Setelah sesi, tulis catatan singkat, centang bahwa ringkasan sudah diperiksa, lalu tekan Tandai sesi selesai.
+
+38
+00:06:38,300 --> 00:06:44,320
+Sesi tertutup. Sekarang peserta bisa mencatat keputusannya.
+
+39
+00:06:45,457 --> 00:06:51,627
+Di bagian Kendala, tandai kendala peserta sebagai selesai setelah ditangani.
+
+40
+00:06:52,696 --> 00:06:59,826
+Bagian keempat: koordinator. Kita masuk sebagai Doktor Sari Wulandari.
+
+41
+00:07:01,163 --> 00:07:12,753
+Halaman Ringkasan berisi lima indikator, K1 sampai K5. Koordinator hanya melihat angka gabungan, tanpa isi pribadi peserta.
+
+42
+00:07:13,886 --> 00:07:20,586
+Setiap indikator punya target. Garis tegak pada batang menandai targetnya.
+
+43
+00:07:21,697 --> 00:07:32,377
+Kohort bisa dipilih di sini. Pada kohort yang masih berjalan, angka dari kurang dari sepuluh orang disembunyikan untuk melindungi privasi.
+
+44
+00:07:35,042 --> 00:07:46,222
+Menu Fasilitator menampilkan beban tiap fasilitator. Peserta yang belum punya fasilitator bisa ditugaskan otomatis ke yang bebannya paling ringan.
+
+45
+00:07:47,333 --> 00:07:52,853
+Menu Mitra berisi bank mitra yang bisa dihubungi peserta untuk percobaan.
+
+46
+00:07:53,817 --> 00:08:03,517
+Menu Mutu AI memantau Pendamping AI: berapa yang lolos pemeriksa, berapa yang memakai cadangan, dan berapa draf yang diubah peserta.
+
+47
+00:08:04,563 --> 00:08:10,923
+Menu Log akses mencatat siapa membuka data apa dan kapan, dengan kode peserta.
+
+48
+00:08:12,033 --> 00:08:26,243
+Itulah alur lengkap Uji Jelajah, dari dugaan sampai keputusan. Panduan tertulis dan daftar akun demo tersedia di berkas PDF panduan penggunaan. Selamat menjelajah!

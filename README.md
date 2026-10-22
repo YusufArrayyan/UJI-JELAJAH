@@ -14,6 +14,8 @@ npm test       # 13 uji unit
 npm run e2e    # ujung ke ujung: API (9 skenario) + antarmuka Chromium (22 pemeriksaan)
 npm run demo:video   # rekam ulang video panduan ke public/media (butuh Playwright)
 npm run mockup       # buat ulang mockup ponsel untuk esai ke docs/mockup (butuh Playwright)
+npm run demo:bersuara # video demo bersuara satu MP4 ke docs/demo (butuh Playwright, Python: edge-tts, imageio-ffmpeg)
+npm run panduan:pdf   # PDF panduan penggunaan + akun demo ke docs/demo (butuh Playwright)
 ```
 
 Hentikan server dulu sebelum `npm run seed` (di Windows berkas basis data terkunci selama server berjalan).
@@ -48,6 +50,13 @@ Halaman `#/panduan` (tanpa akun) memuat video cara pakai untuk peserta, fasilita
 dan subtitel, serta langkah tertulis untuk mitra. Video direkam dari aplikasi asli dengan data simulasi oleh
 `npm run demo:video`; jalankan ulang setiap kali tampilan berubah.
 
+## Video demo bersuara dan PDF panduan
+
+`docs/demo/` berisi `demo-uji-jelajah.mp4` (semua peran dalam satu video, narasi Bahasa Indonesia, subtitel `.srt`,
+daftar bab `demo-bab.txt`) dan `Panduan-Penggunaan-Uji-Jelajah.pdf` (langkah per peran, tangkapan layar, akun demo).
+Suara dibuat dengan edge-tts (`id-ID-GadisNeural`), yang mengirim teks narasi ke layanan TTS Microsoft; pasang dengan
+`python -m pip install --user edge-tts imageio-ffmpeg`.
+
 ## Akun demo (kata sandi `demo1234`)
 
 | Akun | Keadaan |
@@ -80,7 +89,9 @@ docs/DESIGN.md          Sistem desain v1.1 "Kompas"
 docs/DESIGN.notion.md   Arsip acuan desain v1.0 (PRD 13.2)
 docs/KETERTELUSURAN.md  Pemetaan PRD ke kode dan uji (hasil uji akhir)
 docs/INOVASI.md         Daftar inovasi teknologi dan buktinya
-scripts/          pw.mjs (pemuat Playwright), record-demo.mjs (video panduan), mockup.mjs (mockup ponsel)
+scripts/          pw.mjs (pemuat Playwright), record-demo.mjs (video panduan), mockup.mjs (mockup ponsel),
+                  demo-bersuara.mjs (video demo bersuara), panduan-pdf.mjs (PDF panduan)
+docs/demo/        Video demo bersuara dan PDF panduan penggunaan
 docs/mockup/      Mockup ponsel 4 layar untuk esai (papan gabungan dan per layar, latar transparan)
 test/             unit.test.js, e2e.test.js (API), ui.test.js (Playwright)
 CHANGELOG.md      Catatan versi (aturan PRD 4.3)
